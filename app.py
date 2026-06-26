@@ -4,13 +4,26 @@ from datetime import datetime
 from google import genai
 import plotly.graph_objects as go
 import json
+import os
 from streamlit_drawable_canvas import st_canvas
 
 # Sayfa Yapılandırması
-st.set_page_config(layout="wide", page_title="LGS Yapay Zeka Destekli Akademi")
+st.set_page_config(layout="wide", page_title="Şampiyonun LGS Karargâhı")
 
 DOGRU_SIFRE = "1234"
 GEMINI_API_KEY = "AQ.Ab8RN6ISfgTLZu44H--l4mSQMq_uxk-TJanYkpHn346OXLQEeg"
+
+# Profil Resmi İçin Özel CSS (Yuvarlak Çerçeve ve Gölge)
+st.markdown("""
+<style>
+[data-testid="stImage"] img {
+    border-radius: 50%;
+    border: 4px solid #4CAF50;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.3);
+    object-fit: cover;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # Veri Tabanı Bağlantıları
 def veri_getir(query, params=()):
@@ -28,7 +41,7 @@ def veri_kaydet(query, params=()):
     conn.commit()
     conn.close()
 
-# Yapay Zekadan Toplu Soru Paketi Üretme (Katı Müfredat Sınırı ile)
+# Yapay Zekadan Toplu Soru Paketi Üretme
 def ai_toplu_soru_uret(ders, adet=5):
     try:
         client = genai.Client(api_key=GEMINI_API_KEY)
@@ -52,11 +65,25 @@ def ai_toplu_soru_uret(ders, adet=5):
     except:
         return []
 
-st.title("🤖 LGS Yapay Zeka Destekli Akıllı Takip ve Öğrenme Sistemi")
+# ----------------- ÖZEL BAŞLIK TASARIMI -----------------
+col_logo, col_baslik = st.columns([1, 7])
+with col_logo:
+    # GitHub'a yükleyeceğin fotoğrafı burada arayacak
+    if os.path.exists("profil.jpg"):
+        st.image("profil.jpg", width=120)
+    else:
+        st.info("📷 Profil")
+
+with col_baslik:
+    st.title("🏆 Şampiyonun LGS Karargâhı 🚀")
+    st.caption("Hedeflerine adım adım, pes etmeden!")
+    
+st.divider()
+
 panel = st.radio("Lütfen Giriş Türünü Seçin:", ["Veli / Yönetici Paneli", "Öğrenci / Tablet Paneli"], horizontal=True)
 st.divider()
 
-# ----------------- 1. VELİ PANELİ (GELİŞMİŞ DASHBOARD) -----------------
+# ----------------- 1. VELİ PANELİ -----------------
 if panel == "Veli / Yönetici Paneli":
     st.header("👨‍🏫 Veli Analiz Raporları ve Dashboard")
     
@@ -101,8 +128,8 @@ if panel == "Veli / Yönetici Paneli":
                 
                 fig = go.Figure(data=[
                     go.Bar(name='Verilen Soru Hedefi', x=dersler_list, y=hedefler_list, marker_color='#1f77b4'),
-                    go.Bar(name='Oğlunun Doğru Sayısı', x=dersler_list, y=dogrular_list, marker_color='rgb(34, 139, 34)'),
-                    go.Bar(name='Oğlunun Yanlış Sayısı', x=dersler_list, y=cyanlislar_list, marker_color='rgb(178, 34, 34)')
+                    go.Bar(name='Doğru Sayısı', x=dersler_list, y=dogrular_list, marker_color='rgb(34, 139, 34)'),
+                    go.Bar(name='Yanlış Sayısı', x=dersler_list, y=cyanlislar_list, marker_color='rgb(178, 34, 34)')
                 ])
                 fig.update_layout(
                     barmode='group', 
@@ -130,7 +157,6 @@ if panel == "Veli / Yönetici Paneli":
 
 # ----------------- 2. ÖĞRENCİ PANELİ -----------------
 else:
-    st.header("🎯 LGS Yolculuğunda Başarılar Dilerim! 🚀")
     bugun = datetime.now().strftime('%Y-%m-%d')
     
     bugunun_hedefleri = veri_getir("SELECT ders, hedef_soru FROM hedefler WHERE tarih = ?", (bugun,))
@@ -140,7 +166,7 @@ else:
         
     if st.session_state.test_tamamen_bittimi:
         st.balloons()
-        st.success("🏆 Harika! Bugünkü çalışmanı başarıyla bitirdin ve bitirme raporunu babana gönderdin. Şimdi dinlenme zamanı! 🎉")
+        st.success("🏆 Harika! Bugünkü çalışmanı başarıyla bitirdin ve bitirme raporunu gönderdin. Şimdi dinlenme zamanı! 🎉")
         if st.button("🔄 Yeni Test Başlat"):
             st.session_state.test_tamamen_bittimi = False
             if "soru_paketi" in st.session_state: del st.session_state.soru_paketi
@@ -160,7 +186,8 @@ else:
 
         if secilen_ders_ogrenci not in st.session_state.soru_paketi:
             if st.button(f"🚀 {secilen_ders_ogrenci} Test Paketini Hazırla"):
-                with st.spinner(f"Yapay zeka {hedef_adetler[secilen_ders_ogrenci]} soruluk özel paketi hazırlıyor..."):
+                # SENİN İSTEDİĞİN YENİ YÜKLEME MESAJI BURADA
+                with st.spinner("Senin için sorular hazırlanıyor... ⏳"):
                     sorular = ai_toplu_soru_uret(secilen_ders_ogrenci, adet=hedef_adetler[secilen_ders_ogrenci])
                     if sorular:
                         st.session_state.soru_paketi[secilen_ders_ogrenci] = sorular
