@@ -81,11 +81,9 @@ if panel == "Veli / Yönetici Paneli":
         with tab1:
             st.subheader("📈 Derslere Göre Hedef / Doğru / Yanlış Dağılımı")
             
-            # Veritabanından ders bazlı özetleri çekelim
             hedefler_data = veri_getir("SELECT ders, SUM(hedef_soru) FROM hedefler GROUP BY ders")
             cozumler_data = veri_getir("SELECT ders, SUM(dogru_sayisi), SUM(yanlis_sayisi) FROM cozumler GROUP BY ders")
             
-            # Sözlük mimarisi ile eşleştirelim
             grafik_haritasi = {}
             for h in hedefler_data:
                 grafik_haritasi[h[0]] = {"hedef": h[1], "dogru": 0, "yanlis": 0}
@@ -99,13 +97,12 @@ if panel == "Veli / Yönetici Paneli":
                 dersler_list = list(grafik_haritasi.keys())
                 hedefler_list = [grafik_haritasi[d]["hedef"] for d in dersler_list]
                 dogrular_list = [grafik_haritasi[d]["dogru"] for d in dersler_list]
-                yanlislar_list = [grafik_haritasi[d]["yanlis"] for d in dersler_list]
+                cyanlislar_list = [grafik_haritasi[d]["yanlis"] for d in dersler_list]
                 
-                # Plotly ile Ders Bazlı Yan Yana 3'lü Bar Grafiği
                 fig = go.Figure(data=[
                     go.Bar(name='Verilen Soru Hedefi', x=dersler_list, y=hedefler_list, marker_color='#1f77b4'),
                     go.Bar(name='Oğlunun Doğru Sayısı', x=dersler_list, y=dogrular_list, marker_color='rgb(34, 139, 34)'),
-                    go.Bar(name='Oğlunun Yanlış Sayısı', x=dersler_list, y=yanlislar_list, marker_color='rgb(178, 34, 34)')
+                    go.Bar(name='Oğlunun Yanlış Sayısı', x=dersler_list, y=cyanlislar_list, marker_color='rgb(178, 34, 34)')
                 ])
                 fig.update_layout(
                     barmode='group', 
@@ -116,7 +113,6 @@ if panel == "Veli / Yönetici Paneli":
                 )
                 st.plotly_chart(fig, use_container_width=True)
                 
-                # Detaylı Alt Tablo Raporu
                 st.subheader("📋 Veri Dağılım Listesi")
                 for d in dersler_list:
                     st.write(f"📖 **{d}**: Belirlenen Hedef: `{grafik_haritasi[d]['hedef']}` Soru | Çözülen Doğru: `{grafik_haritasi[d]['dogru']}` | Yanlış: `{grafik_haritasi[d]['yanlis']}`")
@@ -132,9 +128,8 @@ if panel == "Veli / Yönetici Paneli":
                 veri_kaydet("INSERT INTO hedefler (tarih, ders, hedef_soru) VALUES (?, ?, ?)", (tarih, secilen_ders, hedef_soru))
                 st.success("Hedef başarıyla kaydedildi!")
 
-# ----------------- 2. ÖĞRENCİ PANELİ (YENİLENEN YÜZÜYLE) -----------------
+# ----------------- 2. ÖĞRENCİ PANELİ -----------------
 else:
-    # 🎯 Senin İstediğin Özel Başarı Dileği Başlığı
     st.header("🎯 LGS Yolculuğunda Başarılar Dilerim! 🚀")
     bugun = datetime.now().strftime('%Y-%m-%d')
     
@@ -180,7 +175,6 @@ else:
             if idx < len(havuz):
                 soru = havuz[idx]
                 
-                # Üst Navigasyon Oklanması
                 col_sol, col_orta, col_sag = st.columns([1, 4, 1])
                 with col_sol:
                     if idx > 0:
@@ -200,7 +194,6 @@ else:
                 with col_soru_alani:
                     st.markdown(f"### {soru['soru']}")
                     
-                    # Şıklar varsayılan olarak boş (Seçilmemiş) geliyor
                     secenek = st.radio(
                         "Cevabını İşaretle:", 
                         [f"A) {soru['A']}", f"B) {soru['B']}", f"C) {soru['C']}", f"D) {soru['D']}"], 
@@ -224,22 +217,18 @@ else:
                                 st.rerun()
                     else:
                         st.subheader("💡 Yapay Zeka Çözüm Özeti")
-                        if secenek and secenek[0] == 
-
-soru['cevap']:
+                        if secenek and secenek[0] == soru['cevap']:
                             st.success(f"🎉 Doğru! {soru['cozum']}")
                         else:
                             st.error(f"❌ Yanlış. Doğru Seçenek: {soru['cevap']}")
                             st.warning(soru['cozum'])
                         
                         st.divider()
-                        # 🏁 Son Soru Kontrolü ve Bitir Buton Modülü
                         if idx < len(havuz) - 1:
                             if st.button("Sıradaki Soruya Geç ➡️", key=f"next_btn_{idx}"):
                                 st.session_state.aktif_index += 1
                                 st.rerun()
                         else:
-                            # 🏁 Senin İstediğin Bitirme Butonu
                             if st.button("🏁 Bugünkü Çalışmayı Bitir ve Babama Raporla 🏆", key="bitir_btn"):
                                 st.session_state.test_tamamen_bittimi = True
                                 st.rerun()
