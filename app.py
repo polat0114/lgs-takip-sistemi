@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 import json
 from streamlit_drawable_canvas import st_canvas
 
+# Sayfa Yapılandırması
 st.set_page_config(layout="wide", page_title="LGS Yapay Zeka Destekli Akademi")
 
 DOGRU_SIFRE = "1234"
@@ -34,7 +35,7 @@ def ai_toplu_soru_uret(ders, adet=5):
         prompt = f"""
         Sen Türkiye MEB müfredat uzmanı bir LGS öğretmenisin.
         Sadece ve sadece Türkiye MEB 7. Sınıf {ders} müfredat ünitelerine, kazanımlarına ve sınırlarına bağlı kalarak {adet} adet karışık genel tekrar sorusu hazırla.
-        KATI KURAL: 7. sınıf müfredat sınırlarının kesinlikle dışına çıkma. Henüz görmediği 8. sınıf (LGS) konularından asla soru sorma! Sadece 7. sınıf kazanımları olsun ama LGS tarzı mantık muhakeme mantığında olsun.
+        KATI KURAL: 7. sınıf müfredat sınırlarının kesinlikle dışına çıkma. Sadece 7. sınıf kazanımları olsun ama LGS tarzı mantık muhakeme mantığında olsun.
         
         FORMAT KURALLARI:
         1. Soru metinleri net, anlaşılır olsun. Sıkıcı uzun paragraf duvarları oluşturma.
@@ -55,7 +56,7 @@ st.title("🤖 LGS Yapay Zeka Destekli Akıllı Takip ve Öğrenme Sistemi")
 panel = st.radio("Lütfen Giriş Türünü Seçin:", ["Veli / Yönetici Paneli", "Öğrenci / Tablet Paneli"], horizontal=True)
 st.divider()
 
-# ----------------- 1. VELİ PANELİ -----------------
+# ----------------- 1. VELİ PANELİ (GELİŞMİŞ DASHBOARD) -----------------
 if panel == "Veli / Yönetici Paneli":
     st.header("👨‍🏫 Veli Analiz Raporları ve Dashboard")
     
@@ -75,25 +76,52 @@ if panel == "Veli / Yönetici Paneli":
             st.session_state.veli_giris_yapildi = False
             st.rerun()
             
-        tab1, tab2 = st.tabs(["📊 Grafiksel Performans Raporu", "🎯 Günlük Hedef Belirle"])
+        tab1, tab2 = st.tabs(["📊 Gelişmiş Hedef ve Performans Grafiği", "🎯 Günlük Hedef Belirle"])
         
         with tab1:
-            st.subheader("📈 Güncel Gelişim Grafikleri")
-            veriler = veri_getir("SELECT ders, konu_adi, SUM(dogru_sayisi), SUM(yanlis_sayisi) FROM cozumler GROUP BY ders, konu_adi")
+            st.subheader("📈 Derslere Göre Hedef / Doğru / Yanlış Dağılımı")
             
-            if veriler:
-                konular_list = [f"{v[0]} - {v[1]}" for v in veriler]
-                dogrular = [v[2] for v in veriler]
-                yanlislar = [v[3] for v in veriler]
+            # Veritabanından ders bazlı özetleri çekelim
+            hedefler_data = veri_getir("SELECT ders, SUM(hedef_soru) FROM hedefler GROUP BY ders")
+            cozumler_data = veri_getir("SELECT ders, SUM(dogru_sayisi), SUM(yanlis_sayisi) FROM cozumler GROUP BY ders")
+            
+            # Sözlük mimarisi ile eşleştirelim
+            grafik_haritasi = {}
+            for h in hedefler_data:
+                grafik_haritasi[h[0]] = {"hedef": h[1], "dogru": 0, "yanlis": 0}
+            for c in cozumler_data:
+                if c[0] not in grafik_haritasi:
+                    grafik_haritasi[c[0]] = {"hedef": 0, "dogru": 0, "yanlis": 0}
+                grafik_haritasi[c[0]]["dogru"] = c[1]
+                grafik_haritasi[c[0]]["yanlis"] = c[2]
+            
+            if grafik_haritasi:
+                dersler_list = list(grafik_haritasi.keys())
+                hedefler_list = [grafik_haritasi[d]["hedef"] for d in dersler_list]
+                dogrular_list = [grafik_haritasi[d]["dogru"] for d in dersler_list]
+                yanlislar_list = [grafik_haritasi[d]["yanlis"] for d in dersler_list]
                 
+                # Plotly ile Ders Bazlı Yan Yana 3'lü Bar Grafiği
                 fig = go.Figure(data=[
-                    go.Bar(name='Doğru Sayısı', x=konular_list, y=dogrular, marker_color='rgb(34, 139, 34)'),
-                    go.Bar(name='Yanlış Sayısı', x=konular_list, y=yanlislar, marker_color='rgb(178, 34, 34)')
+                    go.Bar(name='Verilen Soru Hedefi', x=dersler_list, y=hedefler_list, marker_color='#1f77b4'),
+                    go.Bar(name='Oğlunun Doğru Sayısı', x=dersler_list, y=dogrular_list, marker_color='rgb(34, 139, 34)'),
+                    go.Bar(name='Oğlunun Yanlış Sayısı', x=dersler_list, y=yanlislar_list, marker_color='rgb(178, 34, 34)')
                 ])
-                fig.update_layout(barmode='group', title="Konulara Göre Doğru / Yanlış Dağılımı", xaxis_title="Konular", yaxis_title="Soru Sayısı")
+                fig.update_layout(
+                    barmode='group', 
+                    title="Ders Bazında Karşılaştırmalı Durum Grafiği", 
+                    xaxis_title="Dersler", 
+                    yaxis_title="Soru Sayısı",
+                    legend_title="Gösterge"
+                )
                 st.plotly_chart(fig, use_container_width=True)
+                
+                # Detaylı Alt Tablo Raporu
+                st.subheader("📋 Veri Dağılım Listesi")
+                for d in dersler_list:
+                    st.write(f"📖 **{d}**: Belirlenen Hedef: `{grafik_haritasi[d]['hedef']}` Soru | Çözülen Doğru: `{grafik_haritasi[d]['dogru']}` | Yanlış: `{grafik_haritasi[d]['yanlis']}`")
             else:
-                st.info("Grafiklerin çizilmesi için oğlunun en az 1 soru çözmesi gerekiyor.")
+                st.info("Grafiklerin çizilmesi için bir hedef girilmesi veya soru çözülmesi gerekiyor.")
                 
         with tab2:
             st.subheader("Günlük Soru Hedefi Belirle")
@@ -104,14 +132,26 @@ if panel == "Veli / Yönetici Paneli":
                 veri_kaydet("INSERT INTO hedefler (tarih, ders, hedef_soru) VALUES (?, ?, ?)", (tarih, secilen_ders, hedef_soru))
                 st.success("Hedef başarıyla kaydedildi!")
 
-# ----------------- 2. ÖĞRENCİ PANELİ -----------------
+# ----------------- 2. ÖĞRENCİ PANELİ (YENİLENEN YÜZÜYLE) -----------------
 else:
-    st.header("📱 Yapay Zeka Kesintisiz Tablet Ekranı")
+    # 🎯 Senin İstediğin Özel Başarı Dileği Başlığı
+    st.header("🎯 LGS Yolculuğunda Başarılar Dilerim! 🚀")
     bugun = datetime.now().strftime('%Y-%m-%d')
     
     bugunun_hedefleri = veri_getir("SELECT ders, hedef_soru FROM hedefler WHERE tarih = ?", (bugun,))
     
-    if bugunun_hedefleri:
+    if "test_tamamen_bittimi" not in st.session_state:
+        st.session_state.test_tamamen_bittimi = False
+        
+    if st.session_state.test_tamamen_bittimi:
+        st.balloons()
+        st.success("🏆 Harika! Bugünkü çalışmanı başarıyla bitirdin ve bitirme raporunu babana gönderdin. Şimdi dinlenme zamanı! 🎉")
+        if st.button("🔄 Yeni Test Başlat"):
+            st.session_state.test_tamamen_bittimi = False
+            if "soru_paketi" in st.session_state: del st.session_state.soru_paketi
+            st.rerun()
+            
+    elif bugunun_hedefleri:
         ders_listesi = [h[0] for h in bugunun_hedefleri]
         hedef_adetler = {h[0]: h[1] for h in bugunun_hedefleri}
         secilen_ders_ogrenci = st.selectbox("Çalışmak İstediğin Dersi Seç:", ders_listesi)
@@ -140,7 +180,7 @@ else:
             if idx < len(havuz):
                 soru = havuz[idx]
                 
-                # Sol/Sağ Sayfa Navigasyonu
+                # Üst Navigasyon Oklanması
                 col_sol, col_orta, col_sag = st.columns([1, 4, 1])
                 with col_sol:
                     if idx > 0:
@@ -155,13 +195,12 @@ else:
                             st.session_state.aktif_index += 1
                             st.rerun()
                 
-                # Sol Sütun: Soru ve Şıklar | Sağ Sütun: Tablet Kalemi İçin Karalama Alanı
                 col_soru_alani, col_karalama_alani = st.columns([1, 1])
                 
                 with col_soru_alani:
                     st.markdown(f"### {soru['soru']}")
                     
-                    # 🎯 ŞIKLARIN BOŞ GELMESİ İÇİN index=None YAPILDI
+                    # Şıklar varsayılan olarak boş (Seçilmemiş) geliyor
                     secenek = st.radio(
                         "Cevabını İşaretle:", 
                         [f"A) {soru['A']}", f"B) {soru['B']}", f"C) {soru['C']}", f"D) {soru['D']}"], 
@@ -174,11 +213,10 @@ else:
                     if not is_checked:
                         if st.button("Cevabı Kontrol Et 🚀", key=f"btn_{idx}"):
                             if secenek is None:
-                                st.warning("⚠️ Lütfen önce bir şık seç!")
+                                st.warning("⚠️ Lütfen önce bir şık işaretle!")
                             else:
                                 st.session_state.kontrol_edildi_list[secilen_ders_ogrenci][idx] = True
                                 secilen_harf = secenek[0]
-                                dogru_harf = ...
                                 if secilen_harf == soru['cevap']:
                                     veri_kaydet("INSERT INTO cozumler (tarih, ders, konu_adi, toplam_cozulen, dogru_sayisi, yanlis_sayisi, anlasilmayan_detay) VALUES (?, ?, ?, 1, 1, 0, '')", (bugun, secilen_ders_ogrenci, soru['konu']))
                                 else:
@@ -186,18 +224,26 @@ else:
                                 st.rerun()
                     else:
                         st.subheader("💡 Yapay Zeka Çözüm Özeti")
-                        if secenek and secenek[0] == soru['cevap']:
+                        if secenek and secenek[0] == 
+
+soru['cevap']:
                             st.success(f"🎉 Doğru! {soru['cozum']}")
                         else:
                             st.error(f"❌ Yanlış. Doğru Seçenek: {soru['cevap']}")
                             st.warning(soru['cozum'])
                         
+                        st.divider()
+                        # 🏁 Son Soru Kontrolü ve Bitir Buton Modülü
                         if idx < len(havuz) - 1:
                             if st.button("Sıradaki Soruya Geç ➡️", key=f"next_btn_{idx}"):
                                 st.session_state.aktif_index += 1
                                 st.rerun()
+                        else:
+                            # 🏁 Senin İstediğin Bitirme Butonu
+                            if st.button("🏁 Bugünkü Çalışmayı Bitir ve Babama Raporla 🏆", key="bitir_btn"):
+                                st.session_state.test_tamamen_bittimi = True
+                                st.rerun()
                 
-                # ✏️ TABLET KALEMİ İÇİN DİJİTAL KARALAMA ALANI (SAĞ TARAFTA)
                 with col_karalama_alani:
                     st.caption("✏️ Tablet kalemiyle veya parmağınla işlemini burada yapabilirsin:")
                     firca_kalinligi = st.slider("Kalem Kalınlığı", 1, 10, 3, key=f"slider_{idx}")
@@ -206,7 +252,7 @@ else:
                         stroke_width=firca_kalinligi,
                         stroke_color="#000000",
                         background_color="#eeeeee",
-                        height=350,
+                        height=380,
                         drawing_mode="freedraw",
                         key=f"canvas_{secilen_ders_ogrenci}_{idx}",
                     )
