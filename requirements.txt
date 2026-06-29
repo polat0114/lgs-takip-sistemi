@@ -1,4 +1,4 @@
 streamlit
-google-generativeai
+google-genai
 streamlit-drawable-canvas
 plotly

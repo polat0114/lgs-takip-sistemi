@@ -1,7 +1,9 @@
 import streamlit as st
 import sqlite3
 from datetime import datetime, timedelta
-import google.generativeai as genai
+# Yeni nesil kütüphane entegrasyonu
+from google import genai
+from google.genai import types
 import plotly.graph_objects as go
 import os
 import random
@@ -12,21 +14,14 @@ st.set_page_config(layout="wide", page_title="Şampiyonun LGS Karargâhı")
 
 DOGRU_SIFRE = "1234"
 
-# 🔑 En Son Aldığın %100 Doğru ve Güncel API Anahtarı Tanımlandı
+# 🔑 En Son Aldığın Yeni Format API Anahtarı Buraya Gömüldü
 API_ANAHTARI = "AQ.Ab8RN6L0_nT0dDIPbU28RhNfchFLJz04UDbzA1vCJNbl6gYdow"
-genai.configure(api_key=API_ANAHTARI)
 
-# Profil Resmi CSS Ayarı
-st.markdown("""
-<style>
-[data-testid="stImage"] img {
-    border-radius: 50%;
-    border: 4px solid #4CAF50;
-    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.3);
-    object-fit: cover;
-}
-</style>
-""", unsafe_allow_html=True)
+# Yeni Nesil İstemci Başlatma
+try:
+    client = genai.Client(api_key=API_ANAHTARI)
+except:
+    client = None
 
 TUM_DERSLER = ["Türkçe", "Matematik", "Fen Bilimleri", "İnkılap Tarihi", "İngilizce", "Din Kültürü"]
 
@@ -46,18 +41,19 @@ def veri_kaydet(query, params=()):
     conn.commit()
     conn.close()
 
-# 🧠 HAFIZALI VE YANLIŞ ODAKLI YAPAY ZEKA MOTORU
+# 🧠 %100 CANLI VE SONSUZ FARKLI SORU ÜRETEN YAPAY ZEKA MOTORU
 def ai_soru_uret_ve_temizle(ders, adet=5):
-    # Poyraz Efe'nin geçmiş yanlışlarını hafızaya alıyoruz
     yanlislar = veri_getir("SELECT DISTINCT konu_adi FROM cozumler WHERE ders = ? AND yanlis_sayisi > 0", (ders,))
     yanlis_konular = [y[0] for y in yanlislar if y[0]]
     
     konu_puanlama_ve_stresi = ""
     if yanlis_konular:
-        konu_puanlama_ve_stresi = f"\nÖNEMLİ: Öğrenci daha önce şu konularda yanlış yapmıştır: {', '.join(yanlis_konular)}. Bu konuları pekiştirecek benzer tarzda mantık muhakeme sorularına ağırlık ver."
+        konu_puanlama_ve_stresi = f"\nÖNEMLİ: Öğrenci daha önce şu konularda yanlış yapmıştır: {', '.join(yanlis_konular)}. Bu konuları pekiştirecek benzer tarzda sorulara ağırlık ver."
+
+    if client is None:
+        return [{"konu": "Sistem", "soru": "Yapay zeka istemcisi başlatılamadı.", "A": "-", "B": "-", "C": "-", "D": "-", "cevap": "A", "cozum": "-"}]
 
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
         prompt = f"""
         Sen Türkiye MEB müfredatına tamamen hakim uzman bir LGS öğretmenisin.
         7. Sınıf {ders} müfredatına uygun, mantık muhakeme odaklı, LGS tarzı yeni nesil tam {adet} adet özgün soru hazırla. {konu_puanlama_ve_stresi}
@@ -75,7 +71,12 @@ def ai_soru_uret_ve_temizle(ders, adet=5):
         CEVAP: [Sadece A, B, C veya D harfi]
         COZUM: [Çözüm ve püf noktası açıklaması]
         """
-        response = model.generate_content(prompt)
+        
+        # Yeni nesil Gemini API çağrısı
+        response = client.models.generate_content(
+            model='gemini-1.5-flash',
+            contents=prompt,
+        )
         metin = response.text
         
         bloklar = metin.split("SORU_BASLA")
@@ -99,7 +100,7 @@ def ai_soru_uret_ve_temizle(ders, adet=5):
                     
         return sonuclar[:adet] if len(sonuclar) >= adet else sonuclar
     except Exception as e:
-        return [{"konu": "Bağlantı", "soru": f"Yapay zeka motoru çalıştırılırken bir pürüz oluştu: {str(e)}", "A": "-", "B": "-", "C": "-", "D": "-", "cevap": "A", "cozum": "Bağlantı kontrolü."}]
+        return [{"konu": "Bağlantı", "soru": f"Yapay zeka canlı soru üretirken bir pürüz yaşandı: {str(e)}", "A": "-", "B": "-", "C": "-", "D": "-", "cevap": "A", "cozum": "Yeniden deneyin."}]
 
 # State Yönetimi
 if "soru_paketi" not in st.session_state: st.session_state.soru_paketi = {}
@@ -185,7 +186,7 @@ def pop_up_pencere(ders, bugun):
             firca = st.slider("Kalem Kalınlığı", 1, 10, 3, key=f"br_pop_{ders}_{idx}")
             st_canvas(fill_color="rgba(255,165,0,0.3)", stroke_width=firca, stroke_color="#000000", background_color="#eeeeee", height=380, drawing_mode="freedraw", key=f"can_pop_{ders}_{idx}")
 
-# --- BAŞLIK ALANI ---
+# --- ANA BAŞLIK ---
 col_logo, col_baslik = st.columns([1, 7])
 with col_logo:
     if os.path.exists("profil.jpg"): st.image("profil.jpg", width=120)
@@ -302,7 +303,7 @@ else:
         if cols_ogr[i % 3].button(d, key=f"ogr_btn_{d}", disabled=not is_active, type=button_style, use_container_width=True):
             st.session_state.show_popup_ders = d
             if d not in st.session_state.soru_paketi:
-                with st.spinner("Yapay zeka geçmiş hataları analiz ediyor ve soruları hazırlıyor... 🧠⏳"):
+                with st.spinner("Yapay zeka tamamen sıfırdan, özgün sorular üretiyor... 🧠⏳"):
                     cevap = ai_soru_uret_ve_temizle(d, adet=hedef_adetler[d])
                     if cevap:
                         st.session_state.soru_paketi[d] = cevap
@@ -314,5 +315,5 @@ else:
     if st.session_state.show_popup_ders and st.session_state.show_popup_ders in st.session_state.soru_paketi:
         pop_up_pencere(st.session_state.show_popup_ders, bugun)
                 
-    if not het_adetler if False else not hedef_adetler:
+    if not hedef_adetler:
         st.success("🎉 Bugünlük atanmış bir görevin yok, harika!")
