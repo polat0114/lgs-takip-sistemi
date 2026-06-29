@@ -10,9 +10,10 @@ from streamlit_drawable_canvas import st_canvas
 st.set_page_config(layout="wide", page_title="Şampiyonun LGS Karargâhı")
 
 DOGRU_SIFRE = "1234"
+# 🔑 Yeni API Anahtarın Başarıyla Tanımlandı:
 GEMINI_API_KEY = "AQ.Ab8RN6ISfgTLZu44H--l4mSQMq_uxk-TJanYkpHn346OXLQEeg"
 
-# Profil Resmi İçin Yuvarlak Yapma Özel CSS
+# Profil Resmi CSS Ayarı
 st.markdown("""
 <style>
 [data-testid="stImage"] img {
@@ -42,15 +43,20 @@ def veri_kaydet(query, params=()):
     conn.commit()
     conn.close()
 
-# 🔍 GERÇEK HATAYI EKANA BASAN GELİŞMİŞ AI MOTORU
+# Canlı ve Kararlı Soru Üretim Motoru
 def ai_soru_uret_ve_temizle(ders, adet=5):
     try:
+        if not GEMINI_API_KEY or "BURAYA" in GEMINI_API_KEY:
+            return "⚠️ Geçerli bir Gemini API anahtarı bulunamadı."
+            
         client = genai.Client(api_key=GEMINI_API_KEY)
         prompt = f"""
         Sen Türkiye MEB müfredat uzmanı bir LGS öğretmenisin.
         Sadece Türkiye MEB 7. Sınıf {ders} müfredatına bağlı kalarak {adet} adet LGS tarzı yeni nesil soru hazırla.
+        Her sorunun başına tam olarak 'SORU_BASLA' ifadesini koy.
         Aşağıdaki formata harfiyen uy:
         
+        SORU_BASLA
         KONU: [Konu Adı]
         SORU: [Soru Metni]
         A: [A Şıkkı]
@@ -59,7 +65,6 @@ def ai_soru_uret_ve_temizle(ders, adet=5):
         D: [D Şıkkı]
         CEVAP: [Sadece A, B, C veya D harfi]
         COZUM: [Çözüm açıklaması]
-        ===
         """
         response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
         metin = response.text
@@ -67,11 +72,11 @@ def ai_soru_uret_ve_temizle(ders, adet=5):
         if not metin:
             return "Yapay zekadan boş yanıt döndü."
             
-        bloklar = metin.split("===")
+        bloklar = metin.split("SORU_BASLA")
         sonuclar = []
         
         for blok in bloklar:
-            if "SORU:" in blok or "CEVAP:" in blok:
+            if "SORU:" in blok and "CEVAP:" in blok:
                 satirlar = [s.strip() for s in blok.strip().split("\n") if s.strip()]
                 obj = {"konu": "Genel Tekrar", "soru": "Soru yüklenemedi.", "A":"", "B":"", "C":"", "D":"", "cevap":"A", "cozum":"Çözüm mevcut değil."}
                 
@@ -89,12 +94,11 @@ def ai_soru_uret_ve_temizle(ders, adet=5):
                     sonuclar.append(obj)
                     
         if len(sonuclar) == 0:
-            return f"Metin parçalanamadı. Gelen ham veri şuydu: {metin[:200]}..."
+            return "Yapay zeka formatı eşleştiremedi. Lütfen butona tekrar basın."
             
         return sonuclar
     except Exception as e:
-        # 🚨 HATA ARTIK GİZLENMİYOR, DOĞRUDAN METİN OLARAK VELİYE DÖNDÜRÜLÜYOR
-        return f"Sistemsel API Hatası: {str(e)}"
+        return f"Sistemsel Hata Oluştu: {str(e)}"
 
 # State Yönetimi
 if "soru_paketi" not in st.session_state: st.session_state.soru_paketi = {}
@@ -185,10 +189,9 @@ else:
         if cols_ogr[i % 3].button(d, key=f"ogr_btn_{d}", disabled=not is_active, type=button_style, use_container_width=True):
             st.session_state.aktif_calisilan_ders = d
             if d not in st.session_state.soru_paketi:
-                with st.spinner("Sorular hazırlanıyor... ⏳"):
+                with st.spinner("Sorular canlı olarak hazırlanıyor... ⏳"):
                     cevap = ai_soru_uret_ve_temizle(d, adet=hedef_adetler[d])
                     
-                    # Eğer dönen cevap string ise (yani hataysa) ekrana doğrudan yazdır
                     if isinstance(cevap, str):
                         st.session_state["son_hata_mesaji"] = cevap
                     elif cevap:
@@ -198,11 +201,9 @@ else:
                         if "son_hata_mesaji" in st.session_state: del st.session_state["son_hata_mesaji"]
                         st.rerun()
 
-    # Hata varsa doğrudan burada gösterilsin
     if "son_hata_mesaji" in st.session_state:
         st.error(st.session_state["son_hata_mesaji"])
 
-    # Ekranda Soru Çözüm Paneli Alanı
     if st.session_state.aktif_calisilan_ders and st.session_state.aktif_calisilan_ders in st.session_state.soru_paketi:
         ders = st.session_state.aktif_calisilan_ders
         havuz = st.session_state.soru_paketi.get(ders, [])
@@ -245,23 +246,4 @@ else:
                         st.success(f"🎉 Doğru! {soru.get('cozum')}")
                     else:
                         st.error(f"❌ Yanlış! Doğru Cevap: {d_harf}")
-                        st.warning(soru.get('cozum'))
-                    
-                    st.write("")
-                    if idx < len(havuz) - 1:
-                        if st.button("Sıradaki Soruya Geç ➡️", key=f"next_inline_{ders}_{idx}", use_container_width=True):
-                            st.session_state.aktif_index[ders] += 1
-                            st.rerun()
-                    else:
-                        st.balloons()
-                        st.success("🏆 Harika! Bu dersin tüm sorularını başarıyla bitirdin!")
-                        if st.button("🏁 Dersi Bitir ve Kapat", key=f"close_inline_{ders}", type="primary", use_container_width=True):
-                            st.session_state.aktif_calisilan_ders = None
-                            st.rerun()
-            with col_c:
-                st.caption("✏️ Karalama Tahtası:")
-                firca = st.slider("Kalem Kalınlığı", 1, 10, 3, key=f"br_inline_{ders}_{idx}")
-                st_canvas(fill_color="rgba(255,165,0,0.3)", stroke_width=firca, stroke_color="#000000", background_color="#eeeeee", height=380, drawing_mode="freedraw", key=f"can_inline_{ders}_{idx}")
-                
-    if not hedef_adetler:
-        st.success("🎉 Bugünlük atanmış bir görevin yok, harika!")
+                        st.warning(soru.get
