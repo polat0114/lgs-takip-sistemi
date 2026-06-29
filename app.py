@@ -42,7 +42,7 @@ def veri_kaydet(query, params=()):
     conn.commit()
     conn.close()
 
-# 🛠️ KIRILMAZ VE ASLA ÇÖKMEYEN METİN TABANLI SORU ÜRETİCİ
+# KIRILMAZ VE ASLA ÇÖKMEYEN METİN TABANLI SORU ÜRETİCİ
 def ai_soru_metni_parcala(ders, adet=5):
     try:
         client = genai.Client(api_key=GEMINI_API_KEY)
@@ -65,7 +65,6 @@ def ai_soru_metni_parcala(ders, adet=5):
         response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
         ham_metin = response.text.strip()
         
-        # Metni akıllıca parçalara ayıralım (Kırılma ihtimalini yok ediyoruz)
         bloklar = ham_metin.split("===")
         sorular_listesi = []
         
@@ -96,7 +95,7 @@ if "kontrol_edildi" not in st.session_state: st.session_state.kontrol_edildi = {
 if "veli_secilen_ders" not in st.session_state: st.session_state.veli_secilen_ders = TUM_DERSLER[0]
 if "show_popup_ders" not in st.session_state: st.session_state.show_popup_ders = None
 
-# 🎯 Odaklanmış Pop-up Çözüm Penceresi
+# Odaklanmış Pop-up Çözüm Penceresi
 @st.dialog("🎯 LGS Çözüm Karargâhı", width="large")
 def pop_up_pencere(ders, bugun):
     havuz = st.session_state.soru_paketi.get(ders, [])
@@ -213,7 +212,7 @@ if panel == "Veli / Yönetici Paneli":
                     st.session_state.veli_secilen_ders = d; st.rerun()
             hedef_soru = st.number_input(f"{st.session_state.veli_secilen_ders} Hedefi", min_value=1, value=5)
             if st.button("Hedefi Kaydet"):
-                veri_kaydet("INSERT INTO hedefler (tarih, ders, hedef_soru) VALUES (?, ?, ?)", (tarih, st.session_state.veli_secilen_ders,毀ef_soru))
+                veri_kaydet("INSERT INTO hedefler (tarih, ders, hedef_soru) VALUES (?, ?, ?)", (tarih, st.session_state.veli_secilen_ders, hedef_soru))
                 st.success("Kaydedildi!")
 
 # --- ÖĞRENCİ PANELİ ---
@@ -226,7 +225,7 @@ else:
     cols_ogr = st.columns(3)
     
     for i, d in enumerate(TUM_DERSLER):
-        is_active = d in hedef_adetler
+        is_active = d in zip(hedef_adetler.keys()) or d in hedef_adetler
         if cols_ogr[i % 3].button(d, key=f"o_{d}", disabled=not is_active, type="primary" if is_active else "secondary", use_container_width=True):
             if d not in st.session_state.soru_paketi:
                 with st.spinner("Senin için sorular hazırlanıyor... ⏳"):
