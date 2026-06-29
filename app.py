@@ -42,7 +42,7 @@ def veri_kaydet(query, params=()):
     conn.commit()
     conn.close()
 
-# Kararlı Yapay Zeka Soru Üretici ve Akıllı Ayıklayıcı
+# 🔍 GERÇEK HATAYI EKANA BASAN GELİŞMİŞ AI MOTORU
 def ai_soru_uret_ve_temizle(ders, adet=5):
     try:
         client = genai.Client(api_key=GEMINI_API_KEY)
@@ -64,11 +64,14 @@ def ai_soru_uret_ve_temizle(ders, adet=5):
         response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
         metin = response.text
         
+        if not metin:
+            return "Yapay zekadan boş yanıt döndü."
+            
         bloklar = metin.split("===")
         sonuclar = []
         
         for blok in bloklar:
-            if "SORU:" in blok and "CEVAP:" in blok:
+            if "SORU:" in blok or "CEVAP:" in blok:
                 satirlar = [s.strip() for s in blok.strip().split("\n") if s.strip()]
                 obj = {"konu": "Genel Tekrar", "soru": "Soru yüklenemedi.", "A":"", "B":"", "C":"", "D":"", "cevap":"A", "cozum":"Çözüm mevcut değil."}
                 
@@ -84,9 +87,14 @@ def ai_soru_uret_ve_temizle(ders, adet=5):
                 
                 if obj["soru"] != "Soru yüklenemedi.":
                     sonuclar.append(obj)
-        return sonuclar if len(sonuclar) > 0 else None
-    except:
-        return None
+                    
+        if len(sonuclar) == 0:
+            return f"Metin parçalanamadı. Gelen ham veri şuydu: {metin[:200]}..."
+            
+        return sonuclar
+    except Exception as e:
+        # 🚨 HATA ARTIK GİZLENMİYOR, DOĞRUDAN METİN OLARAK VELİYE DÖNDÜRÜLÜYOR
+        return f"Sistemsel API Hatası: {str(e)}"
 
 # State Yönetimi
 if "soru_paketi" not in st.session_state: st.session_state.soru_paketi = {}
@@ -160,7 +168,7 @@ if panel == "Veli / Yönetici Paneli":
                 st.success("Hedef başarıyla kaydedildi!")
 
 # ==========================================
-# 📱 ÖĞRENCİ / TABLET PANELİ (Inline / Yerleşik Çözüm Alanı)
+# 📱 ÖĞRENCİ / TABLET PANELİ
 # ==========================================
 else:
     bugun = datetime.now().strftime('%Y-%m-%d')
@@ -178,19 +186,24 @@ else:
             st.session_state.aktif_calisilan_ders = d
             if d not in st.session_state.soru_paketi:
                 with st.spinner("Sorular hazırlanıyor... ⏳"):
-                    sorular = ai_soru_uret_ve_temizle(d, adet=hedef_adetler[d])
-                    if sorular:
-                        st.session_state.soru_paketi[d] = sorular
+                    cevap = ai_soru_uret_ve_temizle(d, adet=hedef_adetler[d])
+                    
+                    # Eğer dönen cevap string ise (yani hataysa) ekrana doğrudan yazdır
+                    if isinstance(cevap, str):
+                        st.session_state["son_hata_mesaji"] = cevap
+                    elif cevap:
+                        st.session_state.soru_paketi[d] = cevap
                         st.session_state.aktif_index[d] = 0
-                        st.session_state.kontrol_edildi[d] = [False] * len(sorular)
+                        st.session_state.kontrol_edildi[d] = [False] * len(cevap)
+                        if "son_hata_mesaji" in st.session_state: del st.session_state["son_hata_mesaji"]
                         st.rerun()
-                    else:
-                        st.error("Bağlantı hatası oluştu, lütfen butona tekrar basın.")
-            else:
-                st.rerun()
 
-    # Ekranda Inline Soru Çözüm Paneli Alanı
-    if st.session_state.aktif_calisilan_ders:
+    # Hata varsa doğrudan burada gösterilsin
+    if "son_hata_mesaji" in st.session_state:
+        st.error(st.session_state["son_hata_mesaji"])
+
+    # Ekranda Soru Çözüm Paneli Alanı
+    if st.session_state.aktif_calisilan_ders and st.session_state.aktif_calisilan_ders in st.session_state.soru_paketi:
         ders = st.session_state.aktif_calisilan_ders
         havuz = st.session_state.soru_paketi.get(ders, [])
         idx = st.session_state.aktif_index.get(ders, 0)
@@ -241,7 +254,7 @@ else:
                             st.rerun()
                     else:
                         st.balloons()
-                        st.success("🏆 Harika! Bu dersin tüm görevlerini tamamladın!")
+                        st.success("🏆 Harika! Bu dersin tüm sorularını başarıyla bitirdin!")
                         if st.button("🏁 Dersi Bitir ve Kapat", key=f"close_inline_{ders}", type="primary", use_container_width=True):
                             st.session_state.aktif_calisilan_ders = None
                             st.rerun()
