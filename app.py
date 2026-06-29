@@ -81,7 +81,7 @@ def ai_soru_uret_ve_temizle(ders, adet=5):
         for blok in bloklar:
             if "SORU:" in blok and "CEVAP:" in blok:
                 satirlar = [s.strip() for s in blok.strip().split("\n") if s.strip()]
-                obj = {"konu": "Genel Tekrar", "soru": "Soru yüklenemedi.", "A":"", "B":"", "C":"", "D":"", "cevap":"A", "cozum":"Çözüm mevcut değil."}
+                obj = {"konu": "Genel Tekrar", "soru": "Soru yüklenemedi.", "A": "", "B": "", "C": "", "D": "", "cevap": "A", "cozum": "Çözüm mevcut değil."}
                 
                 for s in satirlar:
                     if s.upper().startswith("KONU:"): obj["konu"] = s[5:].strip()
