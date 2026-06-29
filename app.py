@@ -110,7 +110,7 @@ def ai_soru_uret_ve_temizle(ders, adet=5):
         
         # Yeni nesil Gemini API çağrısı
         response = client.models.generate_content(
-            model='gemini-1.5-flash',
+            model='gemini-2.5-flash',
             contents=prompt,
         )
         metin = response.text
@@ -351,7 +351,7 @@ if panel == "Veli / Yönetici Paneli":
                             try:
                                 test_client = genai.Client(api_key=yeni_key.strip())
                                 test_resp = test_client.models.generate_content(
-                                    model='gemini-1.5-flash',
+                                    model='gemini-2.5-flash',
                                     contents='Merhaba, sadece "Test Başarılı" de.',
                                 )
                                 if test_resp.text:
