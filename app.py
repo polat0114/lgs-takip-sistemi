@@ -8,19 +8,42 @@ import plotly.graph_objects as go
 import os
 import random
 from streamlit_drawable_canvas import st_canvas
+from soru_havuzu import SORU_HAVUZU
 
 # Sayfa Yapılandırması
 st.set_page_config(layout="wide", page_title="Şampiyonun LGS Karargâhı")
 
 DOGRU_SIFRE = "1234"
 
-# 🔑 En Son Aldığın Yeni Format API Anahtarı Buraya Gömüldü
-API_ANAHTARI = "AQ.Ab8RN6L0_nT0dDIPbU28RhNfchFLJz04UDbzA1vCJNbl6gYdow"
+# API Anahtarı Yükleme Mantığı
+def api_anahtari_oku():
+    # 1. Ortam Değişkeni
+    if os.environ.get("GEMINI_API_KEY"):
+        return os.environ.get("GEMINI_API_KEY").strip()
+    # 2. Streamlit Secrets
+    try:
+        if "GEMINI_API_KEY" in st.secrets:
+            return st.secrets["GEMINI_API_KEY"].strip()
+    except:
+        pass
+    # 3. Yerel api_key.txt
+    if os.path.exists("api_key.txt"):
+        try:
+            with open("api_key.txt", "r", encoding="utf-8") as f:
+                return f.read().strip()
+        except:
+            pass
+    return ""
+
+API_ANAHTARI = api_anahtari_oku()
 
 # Yeni Nesil İstemci Başlatma
 try:
-    client = genai.Client(api_key=API_ANAHTARI)
-except:
+    if API_ANAHTARI:
+        client = genai.Client(api_key=API_ANAHTARI)
+    else:
+        client = None
+except Exception as e:
     client = None
 
 TUM_DERSLER = ["Türkçe", "Matematik", "Fen Bilimleri", "İnkılap Tarihi", "İngilizce", "Din Kültürü"]
@@ -41,6 +64,19 @@ def veri_kaydet(query, params=()):
     conn.commit()
     conn.close()
 
+def yerel_havuzdan_soru_sec(ders, adet=5):
+    havuz = SORU_HAVUZU.get(ders, [])
+    if not havuz:
+        return [{"konu": "Genel Tekrar", "soru": f"Yerel havuzda {ders} dersine ait soru bulunamadı.", "A": "-", "B": "-", "C": "-", "D": "-", "cevap": "A", "cozum": "-", "is_local": True}]
+    secilecek_adet = min(len(havuz), adet)
+    secilenler = random.sample(havuz, secilecek_adet)
+    sonuc = []
+    for s in secilenler:
+        kopyalanmis = s.copy()
+        kopyalanmis["is_local"] = True
+        sonuc.append(kopyalanmis)
+    return sonuc
+
 # 🧠 %100 CANLI VE SONSUZ FARKLI SORU ÜRETEN YAPAY ZEKA MOTORU
 def ai_soru_uret_ve_temizle(ders, adet=5):
     yanlislar = veri_getir("SELECT DISTINCT konu_adi FROM cozumler WHERE ders = ? AND yanlis_sayisi > 0", (ders,))
@@ -51,7 +87,7 @@ def ai_soru_uret_ve_temizle(ders, adet=5):
         konu_puanlama_ve_stresi = f"\nÖNEMLİ: Öğrenci daha önce şu konularda yanlış yapmıştır: {', '.join(yanlis_konular)}. Bu konuları pekiştirecek benzer tarzda sorulara ağırlık ver."
 
     if client is None:
-        return [{"konu": "Sistem", "soru": "Yapay zeka istemcisi başlatılamadı.", "A": "-", "B": "-", "C": "-", "D": "-", "cevap": "A", "cozum": "-"}]
+        return yerel_havuzdan_soru_sec(ders, adet)
 
     try:
         prompt = f"""
@@ -85,7 +121,7 @@ def ai_soru_uret_ve_temizle(ders, adet=5):
         for blok in bloklar:
             if "SORU:" in blok and "CEVAP:" in blok:
                 satirlar = [s.strip() for s in blok.strip().split("\n") if s.strip()]
-                obj = {"konu": "Genel Tekrar", "soru": "Soru yüklenemedi.", "A": "", "B": "", "C": "", "D": "", "cevap": "A", "cozum": "Açıklama yok."}
+                obj = {"konu": "Genel Tekrar", "soru": "Soru yüklenemedi.", "A": "", "B": "", "C": "", "D": "", "cevap": "A", "cozum": "Açıklama yok.", "is_local": False}
                 for s in satirlar:
                     if s.upper().startswith("KONU:"): obj["konu"] = s[5:].strip()
                     elif s.upper().startswith("SORU:"): obj["soru"] = s[5:].strip()
@@ -98,9 +134,15 @@ def ai_soru_uret_ve_temizle(ders, adet=5):
                 if obj["soru"] != "Soru yüklenemedi.":
                     sonuclar.append(obj)
                     
-        return sonuclar[:adet] if len(sonuclar) >= adet else sonuclar
+        if len(sonuclar) >= adet:
+            return sonuclar[:adet]
+        elif len(sonuclar) > 0:
+            eksik = adet - len(sonuclar)
+            return sonuclar + yerel_havuzdan_soru_sec(ders, eksik)
+        else:
+            return yerel_havuzdan_soru_sec(ders, adet)
     except Exception as e:
-        return [{"konu": "Bağlantı", "soru": f"Yapay zeka canlı soru üretirken bir pürüz yaşandı: {str(e)}", "A": "-", "B": "-", "C": "-", "D": "-", "cevap": "A", "cozum": "Yeniden deneyin."}]
+        return yerel_havuzdan_soru_sec(ders, adet)
 
 # State Yönetimi
 if "soru_paketi" not in st.session_state: st.session_state.soru_paketi = {}
@@ -128,6 +170,8 @@ def pop_up_pencere(ders, bugun):
                     st.rerun()
         with col_orta:
             st.info(f"📌 Soru {idx + 1} / {len(havuz)} | Ders: {ders} | Konu: {soru.get('konu')}")
+            if soru.get("is_local"):
+                st.warning("⚠️ Yapay zeka yoğunluğu nedeniyle yerel havuzdan yüklenmiştir.")
         with col_sag:
             if idx < len(havuz) - 1:
                 if st.button("Sonraki Soru ➡️", key=f"n_pop_{ders}_{idx}", use_container_width=True):
@@ -218,7 +262,7 @@ if panel == "Veli / Yönetici Paneli":
             st.session_state.veli_giris_yapildi = False
             st.rerun()
             
-        tab1, tab2, tab3 = st.tabs(["📊 Genel Durum Grafiği", "📆 Günlük Ödev / Hedef Takibi", "🎯 Yeni Hedef Belirle"])
+        tab1, tab2, tab3, tab4 = st.tabs(["📊 Genel Durum Grafiği", "📆 Günlük Ödev / Hedef Takibi", "🎯 Yeni Hedef Belirle", "⚙️ Ayarlar"])
         
         with tab1:
             st.subheader("📈 Ders Bazlı Kümülatif Başarı Grafiği")
@@ -284,6 +328,63 @@ if panel == "Veli / Yönetici Paneli":
             if st.button("Hedefi Kaydet", type="primary", use_container_width=True):
                 veri_kaydet("INSERT INTO hedefler (tarih, ders, hedef_soru) VALUES (?, ?, ?)", (tarih, st.session_state.veli_secilen_ders, hedef_soru))
                 st.success("Hedef başarıyla kaydedildi!")
+                
+        with tab4:
+            st.subheader("⚙️ Yapay Zeka & API Ayarları")
+            
+            # Maskelenmiş mevcut anahtarı göster
+            if API_ANAHTARI:
+                maskelenmis = API_ANAHTARI[:6] + "..." + API_ANAHTARI[-4:] if len(API_ANAHTARI) > 10 else "Tanımlı"
+                st.info(f"🔑 **Mevcut API Anahtarı:** `{maskelenmis}`")
+            else:
+                st.warning("⚠️ **Mevcut API Anahtarı:** Tanımlı Değil (Sistem yerel havuzu kullanıyor)")
+                
+            yeni_key = st.text_input("Yeni Gemini API Anahtarı:", type="password", help="Google AI Studio'dan aldığınız API anahtarını buraya yapıştırın.")
+            
+            col_t1, col_t2 = st.columns(2)
+            with col_t1:
+                if st.button("Bağlantıyı Test Et ⚡", use_container_width=True):
+                    if not yeni_key:
+                        st.error("Lütfen test etmek için bir anahtar girin!")
+                    else:
+                        with st.spinner("Gemini API bağlantısı test ediliyor..."):
+                            try:
+                                test_client = genai.Client(api_key=yeni_key.strip())
+                                test_resp = test_client.models.generate_content(
+                                    model='gemini-1.5-flash',
+                                    contents='Merhaba, sadece "Test Başarılı" de.',
+                                )
+                                if test_resp.text:
+                                    st.success(f"✅ Bağlantı Başarılı! Yapay zeka yanıtı: {test_resp.text}")
+                                else:
+                                    st.error("❌ Bağlantı başarısız: Yapay zeka boş yanıt döndürdü.")
+                            except Exception as ex:
+                                st.error(f"❌ Bağlantı Başarısız! Hata: {str(ex)}")
+                                st.info("Not: 401 unauthenticated hatası alıyorsanız temiz bir Google hesabıyla yeni bir anahtar almayı deneyin.")
+                                
+            with col_t2:
+                if st.button("Kaydet ve Uygula 💾", type="primary", use_container_width=True):
+                    if not yeni_key:
+                        st.error("Lütfen önce bir anahtar girin!")
+                    else:
+                        try:
+                            with open("api_key.txt", "w", encoding="utf-8") as f:
+                                f.write(yeni_key.strip())
+                            st.success("API Anahtarı başarıyla kaydedildi! Sayfa yenileniyor...")
+                            st.rerun()
+                        except Exception as ex:
+                            st.error(f"Kaydederken hata oluştu: {str(ex)}")
+                            
+            if API_ANAHTARI:
+                st.markdown("---")
+                if st.button("Mevcut API Anahtarını Sil 🗑️", use_container_width=True):
+                    try:
+                        if os.path.exists("api_key.txt"):
+                            os.remove("api_key.txt")
+                        st.success("API Anahtarı silindi! Sistem yerel havuz moduna döndü.")
+                        st.rerun()
+                    except Exception as ex:
+                        st.error(f"Silinirken hata oluştu: {str(ex)}")
 
 # ==========================================
 # 📱 ÖĞRENCİ / TABLET PANELİ
