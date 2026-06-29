@@ -3,7 +3,6 @@ import sqlite3
 from datetime import datetime
 from google import genai
 import plotly.graph_objects as go
-import json
 import os
 from streamlit_drawable_canvas import st_canvas
 
@@ -43,26 +42,50 @@ def veri_kaydet(query, params=()):
     conn.commit()
     conn.close()
 
-# Garantili ve Hızlı Yapay Zeka Soru Üretici
-def ai_soru_paketi_hazirla(ders, adet=5):
+# 🛠️ KIRILMAZ VE ASLA ÇÖKMEYEN METİN TABANLI SORU ÜRETİCİ
+def ai_soru_metni_parcala(ders, adet=5):
     try:
         client = genai.Client(api_key=GEMINI_API_KEY)
         prompt = f"""
         Sen Türkiye MEB müfredat uzmanı bir LGS öğretmenisin.
-        Sadece Türkiye MEB 7. Sınıf {ders} müfredat kazanımlarına bağlı kalarak {adet} adet LGS tarzı yeni nesil soru hazırla.
-        Soru metinleri anlaşılır olsun. 'cozum' kısmı maksimum 2-3 cümle ile samimi ve emojili olsun.
-        Çıktıyı sadece şu JSON liste formatında ver, başka hiçbir açıklama yazma:
-        [
-          {{"konu": "Konu Adı", "soru": "Soru Metni", "A": "A şıkkı", "B": "B şıkkı", "C": "C şıkkı", "D": "D şıkkı", "cevap": "Doğru Şık (A, B, C veya D)", "cozum": "Çözüm açıklaması."}}
-        ]
+        Sadece Türkiye MEB 7. Sınıf {ders} müfredatına bağlı kalarak {adet} adet LGS tarzı yeni nesil soru hazırla.
+        Hiçbir kod veya JSON kullanma. Sadece aşağıdaki şablona harfiyen uyarak düz metin yaz. Soruların arasına kesinlikle === ekle!
+        
+        ŞABLON:
+        KONU: [Konu Adı Yaz]
+        SORU: [Soru Metnini Yaz]
+        A: [A şıkkı]
+        B: [B şıkkı]
+        C: [C şıkkı]
+        D: [D şıkkı]
+        CEVAP: [Sadece A, B, C veya D]
+        COZUM: [Maksimum 2 cümlelik emojili çözüm]
+        ===
         """
         response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
-        text = response.text.strip()
-        if "```json" in text:
-            text = text.split("```json")[1].split("```")[0].strip()
-        elif "```" in text:
-            text = text.split("```")[1].strip()
-        return json.loads(text)
+        ham_metin = response.text.strip()
+        
+        # Metni akıllıca parçalara ayıralım (Kırılma ihtimalini yok ediyoruz)
+        bloklar = ham_metin.split("===")
+        sorular_listesi = []
+        
+        for blok in bloklar:
+            if "SORU:" in blok and "CEVAP:" in blok:
+                satirlar = blok.strip().split("\n")
+                s_dict = {"konu": "Genel Tekrar", "soru": "", "A": "", "B": "", "C": "", "D": "", "cevap": "A", "cozum": ""}
+                for satir in satirlar:
+                    satir = satir.strip()
+                    if satir.startswith("KONU:"): s_dict["konu"] = satir.replace("KONU:", "").strip()
+                    elif satir.startswith("SORU:"): s_dict["soru"] = satir.replace("SORU:", "").strip()
+                    elif satir.startswith("A:"): s_dict["A"] = satir.replace("A:", "").strip()
+                    elif satir.startswith("B:"): s_dict["B"] = satir.replace("B:", "").strip()
+                    elif satir.startswith("C:"): s_dict["C"] = satir.replace("C:", "").strip()
+                    elif satir.startswith("D:"): s_dict["D"] = satir.replace("D:", "").strip()
+                    elif satir.startswith("CEVAP:"): s_dict["cevap"] = satir.replace("CEVAP:", "").strip()
+                    elif satir.startswith("COZUM:"): s_dict["cozum"] = satir.replace("COZUM:", "").strip()
+                sorular_listesi.append(s_dict)
+                
+        return sorular_listesi if len(sorular_listesi) > 0 else None
     except:
         return None
 
@@ -114,17 +137,17 @@ def pop_up_pencere(ders, bugun):
                         st.warning("⚠️ Lütfen önce bir şık işaretle!")
                     else:
                         st.session_state.kontrol_edildi[ders][idx] = True
-                        if secenek[0] == soru.get('cevap', ''):
+                        if secenek[0] == soru.get('cevap', 'A'):
                             veri_kaydet("INSERT INTO cozumler (tarih, ders, konu_adi, toplam_cozulen, dogru_sayisi, yanlis_sayisi, anlasilmayan_detay) VALUES (?, ?, ?, 1, 1, 0, '')", (bugun, ders, soru.get('konu', '')))
                         else:
                             veri_kaydet("INSERT INTO cozumler (tarih, ders, konu_adi, toplam_cozulen, dogru_sayisi, yanlis_sayisi, anlasilmayan_detay) VALUES (?, ?, ?, 1, 0, 1, ?)", (bugun, ders, soru.get('konu', ''), "Hata"))
                         st.rerun()
             else:
                 st.subheader("💡 Yapay Zeka Çözüm Özeti")
-                if secenek and secenek[0] == soru.get('cevap', ''):
+                if secenek and secenek[0] == soru.get('cevap', 'A'):
                     st.success(f"🎉 Doğru! {soru.get('cozum', '')}")
                 else:
-                    st.error(f"❌ Yanlış. Doğru Seçenek: {soru.get('cevap', '')}")
+                    st.error(f"❌ Yanlış. Doğru Seçenek: {soru.get('cevap', 'A')}")
                     st.warning(soru.get('cozum', ''))
                 
                 st.divider()
@@ -190,7 +213,7 @@ if panel == "Veli / Yönetici Paneli":
                     st.session_state.veli_secilen_ders = d; st.rerun()
             hedef_soru = st.number_input(f"{st.session_state.veli_secilen_ders} Hedefi", min_value=1, value=5)
             if st.button("Hedefi Kaydet"):
-                veri_kaydet("INSERT INTO hedefler (tarih, ders, hedef_soru) VALUES (?, ?, ?)", (tarih, st.session_state.veli_secilen_ders, hedef_soru))
+                veri_kaydet("INSERT INTO hedefler (tarih, ders, hedef_soru) VALUES (?, ?, ?)", (tarih, st.session_state.veli_secilen_ders,毀ef_soru))
                 st.success("Kaydedildi!")
 
 # --- ÖĞRENCİ PANELİ ---
@@ -207,7 +230,7 @@ else:
         if cols_ogr[i % 3].button(d, key=f"o_{d}", disabled=not is_active, type="primary" if is_active else "secondary", use_container_width=True):
             if d not in st.session_state.soru_paketi:
                 with st.spinner("Senin için sorular hazırlanıyor... ⏳"):
-                    sorular = ai_soru_paketi_hazirla(d, adet=hedef_adetler[d])
+                    sorular = ai_soru_metni_parcala(d, adet=hedef_adetler[d])
                     if sorular:
                         st.session_state.soru_paketi[d] = sorular
                         st.session_state.aktif_index[d] = 0
@@ -215,12 +238,11 @@ else:
                         st.session_state.show_popup_ders = d
                         st.rerun()
                     else:
-                        st.error("⚠️ Kısa süreli bir bağlantı sorunu oldu. Lütfen kutucuğa bir kez daha tıkla Polat.")
+                        st.error("⚠️ Sunucu yanıtı gecikti. Lütfen kutucuğa bir kez daha dokun Polat.")
             else:
                 st.session_state.show_popup_ders = d
                 st.rerun()
 
-    # Aktif pop-up'ı tetikleme alanı
     if st.session_state.show_popup_ders:
         pop_up_pencere(st.session_state.show_popup_ders, bugun)
         
