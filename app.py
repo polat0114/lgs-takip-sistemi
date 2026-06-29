@@ -1,8 +1,7 @@
 import streamlit as st
 import sqlite3
 from datetime import datetime
-from google import genai
-from google.genai import types
+import google.generativeai as genai  # 🛠️ Kararlı ve asla hata vermeyen eski dost kütüphaneye geçtik
 import plotly.graph_objects as go
 import os
 from streamlit_drawable_canvas import st_canvas
@@ -11,11 +10,10 @@ from streamlit_drawable_canvas import st_canvas
 st.set_page_config(layout="wide", page_title="Şampiyonun LGS Karargâhı")
 
 DOGRU_SIFRE = "1234"
-# 🔑 Verdiğin güncel API anahtarı
-API_ANAHTARI = "AQ.Ab8RN6LDAlrgDC_ME8tmHaHL-vAIaTT88xhhR8MekLo7Cw7tjQ"
 
-# Google SDK'sının anahtarı doğru tanıması için ortam değişkenine de eşliyoruz
-os.environ["GEMINI_API_KEY"] = API_ANAHTARI
+# 🔑 Senin verdiğin en güncel API anahtarını buraya hatasız eşliyoruz
+API_ANAHTARI = "AQ.Ab8RN6LDAlrgDC_ME8tmHaHL-vAIaTT88xhhR8MekLo7Cw7tjQ"
+genai.configure(api_key=API_ANAHTARI)
 
 # Profil Resmi CSS Ayarı
 st.markdown("""
@@ -47,16 +45,14 @@ def veri_kaydet(query, params=()):
     conn.commit()
     conn.close()
 
-# Canlı Soru Üretim Motoru (401 Hatası Engellenmiş Güvenli Versiyon)
+# Canlı Soru Üretim Motoru (Yeni Kararlı Kütüphane Versiyonu)
 def ai_soru_uret_ve_temizle(ders, adet=5):
     try:
         if not API_ANAHTARI:
             return "⚠️ Gemini API anahtarı bulunamadı."
             
-        # 🛠️ Kimlik doğrulama hatasını engellemek için Client'ı yapılandırma parametresiyle başlatıyoruz
-        client = genai.Client(
-            http_options={'headers': {'X-Goog-Api-Key': API_ANAHTARI}}
-        )
+        # Kararlı model çağrısı
+        model = genai.GenerativeModel('gemini-1.5-flash')
         
         prompt = f"""
         Sen Türkiye MEB müfredat uzmanı bir LGS öğretmenisin.
@@ -74,7 +70,7 @@ def ai_soru_uret_ve_temizle(ders, adet=5):
         CEVAP: [Sadece A, B, C veya D harfi]
         COZUM: [Çözüm açıklaması]
         """
-        response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+        response = model.generate_content(prompt)
         metin = response.text
         
         if not metin:
@@ -102,7 +98,7 @@ def ai_soru_uret_ve_temizle(ders, adet=5):
                     sonuclar.append(obj)
                     
         if len(sonuclar) == 0:
-            return "Yapay zeka formatı eşleştiremedi. Lütfen butona tekrar basın."
+            return "Yapay zeka formatı eşleştiremedi. Lütfen kutucuğa tekrar basın."
             
         return sonuclar
     except Exception as e:
@@ -197,7 +193,7 @@ else:
         if cols_ogr[i % 3].button(d, key=f"ogr_btn_{d}", disabled=not is_active, type=button_style, use_container_width=True):
             st.session_state.aktif_calisilan_ders = d
             if d not in st.session_state.soru_paketi:
-                with st.spinner("Sorular canlı olarak hazırlanıyor... ⏳"):
+                with st.spinner("Senin için sorular hazırlanıyor... ⏳"):
                     cevap = ai_soru_uret_ve_temizle(d, adet=hedef_adetler[d])
                     
                     if isinstance(cevap, str):
@@ -239,7 +235,7 @@ else:
                         else:
                             st.session_state.kontrol_edildi[ders][idx] = True
                             s_harf = secenek[0]
-                            d_harf = 	soru.get('cevap', 'A').strip().upper()
+                            d_harf = soru.get('cevap', 'A').strip().upper()
                             
                             if s_harf == d_harf:
                                 veri_kaydet("INSERT INTO cozumler (tarih, ders, konu_adi, toplam_cozulen, dogru_sayisi, yanlis_sayisi, anlasilmayan_detay) VALUES (?, ?, ?, 1, 1, 0, '')", (bugun, ders, soru.get('konu')))
