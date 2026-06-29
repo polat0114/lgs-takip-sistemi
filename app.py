@@ -2,6 +2,7 @@ import streamlit as st
 import sqlite3
 from datetime import datetime
 from google import genai
+from google.genai import types
 import plotly.graph_objects as go
 import os
 from streamlit_drawable_canvas import st_canvas
@@ -10,8 +11,11 @@ from streamlit_drawable_canvas import st_canvas
 st.set_page_config(layout="wide", page_title="Şampiyonun LGS Karargâhı")
 
 DOGRU_SIFRE = "1234"
-# 🔑 Yeni API Anahtarın Eksiksiz Tanımlandı
-GEMINI_API_KEY = "AQ.Ab8RN6LDAlrgDC_ME8tmHaHL-vAIaTT88xhhR8MekLo7Cw7tjQ"
+# 🔑 Verdiğin güncel API anahtarı
+API_ANAHTARI = "AQ.Ab8RN6LDAlrgDC_ME8tmHaHL-vAIaTT88xhhR8MekLo7Cw7tjQ"
+
+# Google SDK'sının anahtarı doğru tanıması için ortam değişkenine de eşliyoruz
+os.environ["GEMINI_API_KEY"] = API_ANAHTARI
 
 # Profil Resmi CSS Ayarı
 st.markdown("""
@@ -43,13 +47,17 @@ def veri_kaydet(query, params=()):
     conn.commit()
     conn.close()
 
-# Canlı Soru Üretim Motoru
+# Canlı Soru Üretim Motoru (401 Hatası Engellenmiş Güvenli Versiyon)
 def ai_soru_uret_ve_temizle(ders, adet=5):
     try:
-        if not GEMINI_API_KEY or "BURAYA" in GEMINI_API_KEY:
-            return "⚠️ Geçerli bir Gemini API anahtarı bulunamadı."
+        if not API_ANAHTARI:
+            return "⚠️ Gemini API anahtarı bulunamadı."
             
-        client = genai.Client(api_key=GEMINI_API_KEY)
+        # 🛠️ Kimlik doğrulama hatasını engellemek için Client'ı yapılandırma parametresiyle başlatıyoruz
+        client = genai.Client(
+            http_options={'headers': {'X-Goog-Api-Key': API_ANAHTARI}}
+        )
+        
         prompt = f"""
         Sen Türkiye MEB müfredat uzmanı bir LGS öğretmenisin.
         Sadece Türkiye MEB 7. Sınıf {ders} müfredatına bağlı kalarak {adet} adet LGS tarzı yeni nesil soru hazırla.
@@ -231,7 +239,7 @@ else:
                         else:
                             st.session_state.kontrol_edildi[ders][idx] = True
                             s_harf = secenek[0]
-                            d_harf = soru.get('cevap', 'A').strip().upper()
+                            d_harf = 	soru.get('cevap', 'A').strip().upper()
                             
                             if s_harf == d_harf:
                                 veri_kaydet("INSERT INTO cozumler (tarih, ders, konu_adi, toplam_cozulen, dogru_sayisi, yanlis_sayisi, anlasilmayan_detay) VALUES (?, ?, ?, 1, 1, 0, '')", (bugun, ders, soru.get('konu')))
