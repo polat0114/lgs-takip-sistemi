@@ -2,10 +2,13 @@ import streamlit as st
 import sqlite3
 from datetime import datetime
 from google import genai
+from google.genai import types
 import plotly.graph_objects as go
 import json
 import os
 from streamlit_drawable_canvas import st_canvas
+from pydantic import BaseModel, Field
+from typing import List
 
 # Sayfa Yapılandırması
 st.set_page_config(layout="wide", page_title="Şampiyonun LGS Karargâhı")
@@ -44,25 +47,46 @@ def veri_kaydet(query, params=()):
     conn.commit()
     conn.close()
 
-# ⚡ IŞIK HIZINDA TEKLİ SORU ÜRETME FONKSİYONU
-def ai_tek_soru_uret(ders):
+# 🧠 Yapay Zekanın Hata Yapmasını Engelleyen Yapısal Şema (Pydantic)
+class SoruSemasi(BaseModel):
+    konu: str = Field(description="Müfredat Konu Adı")
+    soru: str = Field(description="Soru Metni")
+    A: str = Field(description="A seçeneği metni")
+    B: str = Field(description="B seçeneği metni")
+    C: str = Field(description="C seçeneği metni")
+    D: str = Field(description="D seçeneği metni")
+    cevap: str = Field(description="Doğru Şık (Sadece A, B, C veya D)")
+    cozum: str = Field(description="Maksimum 2-3 cümlelik samimi ve emojili çözüm özeti")
+
+class SoruPaketiSemasi(BaseModel):
+    sorular: List[SoruSemasi]
+
+# 🎯 KESİN ÇÖZÜMLÜ TOPLU SORU ÜRETME FONKSİYONU
+def ai_garantili_paket_uret(ders, adet=5):
     try:
         client = genai.Client(api_key=GEMINI_API_KEY)
         prompt = f"""
         Sen Türkiye MEB müfredat uzmanı bir LGS öğretmenisin.
-        Sadece Türkiye MEB 7. Sınıf {ders} müfredatına bağlı kalarak 1 adet LGS tarzı mantık muhakeme sorusu hazırla.
-        
-        KATI KURAL: Çıktıyı SADECE VE SADECE JSON formatında ver. Başına veya sonuna HİÇBİR açıklama metni ekleme! 
-        Sadece süslü parantezle başlayan şu formattaki temiz bir nesne ver:
-        {{"konu": "Müfredat Konusu", "soru": "Soru Metni", "A": "A seçeneği", "B": "B seçeneği", "C": "C seçeneği", "D": "D seçeneği", "cevap": "Doğru Şık (A, B, C veya D)", "cozum": "Kısa, net ve emojili çözüm."}}
+        Sadece Türkiye MEB 7. Sınıf {ders} müfredatına, ünitelerine ve kazanımlarına bağlı kalarak {adet} adet LGS tarzı mantık muhakeme sorusu hazırla.
+        7. sınıf sınırlarının dışına çıkma. Soru metinleri net olsun, gereksiz uzun paragraf duvarları oluşturma. 
+        Her sorunun 'cozum' kısmı maksimum 2-3 cümle ile samimi, emojili ve direkt hatayı gösteren bir özet olsun.
         """
-        response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
-        temiz_metin = response.text.strip()
-        if temiz_metin.startswith("```json"): temiz_metin = temiz_metin[7:]
-        if temiz_metin.endswith("```"): temiz_metin = temiz_metin[:-3]
-        return json.loads(temiz_metin.strip())
-    except:
-        return None
+        
+        # Google API Yapılandırılmış Çıktı Modu (Hata İhtimalini Sıfırlar)
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=SoruPaketiSemasi,
+                temperature=0.7
+            ),
+        )
+        
+        obj = json.loads(response.text.strip())
+        return obj.get("soru_paketi", obj).get("soru_paketi_semasi", obj).get("sorular", [])
+    except Exception as e:
+        return []
 
 # Bellek (State) Yönetimi
 if "soru_paketi" not in st.session_state:
@@ -80,30 +104,16 @@ if "veli_secilen_ders" not in st.session_state:
 @st.dialog("🎯 LGS Çözüm Karargâhı", width="large")
 def ac_pop_up(ders, hedef_adet, bugun):
     if ders not in st.session_state.soru_paketi:
-        # İlerleme çubuğu ile hızlı toplama görseli
-        ilerleme_alani = st.empty()
-        havuz_gecici = []
-        
-        for s_no in range(hedef_adet):
-            ilerleme_alani.info(f"⚡ Senin için {ders} dersi {s_no + 1}. soru ışık hızında hazırlanıyor... 🚀")
-            tek_soru = ai_tek_soru_uret(ders)
-            if tek_soru:
-                havuz_gecici.append(tek_soru)
+        with st.spinner("Senin için sorular hazırlanıyor... ⏳"):
+            sorular = ai_garantili_paket_uret(ders, adet=hedef_adet)
+            if sorular:
+                st.session_state.soru_paketi[ders] = sorular
+                st.session_state.aktif_index[ders] = 0
+                st.session_state.kontrol_edildi[ders] = [False] * len(sorular)
+                st.rerun()
             else:
-                # Başarısız olursa bir kez daha hızlıca dene
-                tek_soru_tekrar = ai_tek_soru_uret(ders)
-                if tek_soru_tekrar: havuz_gecici.append(tek_soru_tekrar)
-        
-        ilerleme_alani.empty()
-        
-        if len(havuz_gecici) > 0:
-            st.session_state.soru_paketi[ders] = havuz_gecici
-            st.session_state.aktif_index[ders] = 0
-            st.session_state.kontrol_edildi[ders] = [False] * len(havuz_gecici)
-            st.rerun()
-        else:
-            st.error("⚠️ Sunucu bağlantı hatası oluştu. Lütfen pencereyi kapatıp tekrar kutucuğa tıkla.")
-            return
+                st.error("⚠️ Sunucu geçici olarak yanıt vermedi. Lütfen sağ üstteki (X) butonundan kapatıp tekrar kutucuğa tıkla.")
+                return
 
     havuz = st.session_state.soru_paketi.get(ders, [])
     if not havuz: return
