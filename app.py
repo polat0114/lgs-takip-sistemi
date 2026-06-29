@@ -10,8 +10,8 @@ from streamlit_drawable_canvas import st_canvas
 st.set_page_config(layout="wide", page_title="Şampiyonun LGS Karargâhı")
 
 DOGRU_SIFRE = "1234"
-# 🔑 Yeni API Anahtarın Başarıyla Tanımlandı:
-GEMINI_API_KEY = "AQ.Ab8RN6ISfgTLZu44H--l4mSQMq_uxk-TJanYkpHn346OXLQEeg"
+# 🔑 Yeni API Anahtarın Eksiksiz Tanımlandı
+GEMINI_API_KEY = "AQ.Ab8RN6LDAlrgDC_ME8tmHaHL-vAIaTT88xhhR8MekLo7Cw7tjQ"
 
 # Profil Resmi CSS Ayarı
 st.markdown("""
@@ -43,7 +43,7 @@ def veri_kaydet(query, params=()):
     conn.commit()
     conn.close()
 
-# Canlı ve Kararlı Soru Üretim Motoru
+# Canlı Soru Üretim Motoru
 def ai_soru_uret_ve_temizle(ders, adet=5):
     try:
         if not GEMINI_API_KEY or "BURAYA" in GEMINI_API_KEY:
@@ -246,4 +246,23 @@ else:
                         st.success(f"🎉 Doğru! {soru.get('cozum')}")
                     else:
                         st.error(f"❌ Yanlış! Doğru Cevap: {d_harf}")
-                        st.warning(soru.get
+                        st.warning(soru.get('cozum', 'Çözüm açıklaması mevcut değil.'))
+                    
+                    st.write("")
+                    if idx < len(havuz) - 1:
+                        if st.button("Sıradaki Soruya Geç ➡️", key=f"next_inline_{ders}_{idx}", use_container_width=True):
+                            st.session_state.aktif_index[ders] += 1
+                            st.rerun()
+                    else:
+                        st.balloons()
+                        st.success("🏆 Harika! Bu dersin tüm sorularını başarıyla bitirdin!")
+                        if st.button("🏁 Dersi Bitir ve Kapat", key=f"close_inline_{ders}", type="primary", use_container_width=True):
+                            st.session_state.aktif_calisilan_ders = None
+                            st.rerun()
+            with col_c:
+                st.caption("✏️ Karalama Tahtası:")
+                firca = st.slider("Kalem Kalınlığı", 1, 10, 3, key=f"br_inline_{ders}_{idx}")
+                st_canvas(fill_color="rgba(255,165,0,0.3)", stroke_width=firca, stroke_color="#000000", background_color="#eeeeee", height=380, drawing_mode="freedraw", key=f"can_inline_{ders}_{idx}")
+                
+    if not hedef_adetler:
+        st.success("🎉 Bugünlük atanmış bir görevin yok, harika!")
