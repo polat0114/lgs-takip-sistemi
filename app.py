@@ -44,27 +44,25 @@ def veri_kaydet(query, params=()):
     conn.commit()
     conn.close()
 
-# Yapay Zeka
-def ai_toplu_soru_uret(ders, adet=5):
+# ⚡ IŞIK HIZINDA TEKLİ SORU ÜRETME FONKSİYONU
+def ai_tek_soru_uret(ders):
     try:
         client = genai.Client(api_key=GEMINI_API_KEY)
         prompt = f"""
         Sen Türkiye MEB müfredat uzmanı bir LGS öğretmenisin.
-        Sadece Türkiye MEB 7. Sınıf {ders} müfredatına bağlı kalarak {adet} adet LGS tarzı mantık muhakeme sorusu hazırla.
+        Sadece Türkiye MEB 7. Sınıf {ders} müfredatına bağlı kalarak 1 adet LGS tarzı mantık muhakeme sorusu hazırla.
         
-        KATI KURAL: Çıktıyı SADECE VE SADECE JSON formatında ver. Başına veya sonuna HİÇBİR metin ekleme! 
-        Sadece köşeli parantezle başlayan şu formattaki temiz bir liste ver:
-        [
-          {{"konu": "Müfredat Konusu", "soru": "Soru Metni", "A": "A seçeneği", "B": "B seçeneği", "C": "C seçeneği", "D": "D seçeneği", "cevap": "Doğru Şık (A, B, C veya D)", "cozum": "Kısa, net ve emojili çözüm."}}
-        ]
+        KATI KURAL: Çıktıyı SADECE VE SADECE JSON formatında ver. Başına veya sonuna HİÇBİR açıklama metni ekleme! 
+        Sadece süslü parantezle başlayan şu formattaki temiz bir nesne ver:
+        {{"konu": "Müfredat Konusu", "soru": "Soru Metni", "A": "A seçeneği", "B": "B seçeneği", "C": "C seçeneği", "D": "D seçeneği", "cevap": "Doğru Şık (A, B, C veya D)", "cozum": "Kısa, net ve emojili çözüm."}}
         """
         response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
         temiz_metin = response.text.strip()
         if temiz_metin.startswith("```json"): temiz_metin = temiz_metin[7:]
         if temiz_metin.endswith("```"): temiz_metin = temiz_metin[:-3]
         return json.loads(temiz_metin.strip())
-    except Exception as e:
-        return "hata" 
+    except:
+        return None
 
 # Bellek (State) Yönetimi
 if "soru_paketi" not in st.session_state:
@@ -82,16 +80,30 @@ if "veli_secilen_ders" not in st.session_state:
 @st.dialog("🎯 LGS Çözüm Karargâhı", width="large")
 def ac_pop_up(ders, hedef_adet, bugun):
     if ders not in st.session_state.soru_paketi:
-        with st.spinner(f"Senin için {ders} soruları hazırlanıyor... ⏳"):
-            sorular = ai_toplu_soru_uret(ders, adet=hedef_adet)
-            if sorular == "hata":
-                st.error("⚠️ Yapay zeka yoğunluktan dolayı soruları oluşturamadı. Lütfen sağ üstteki (X) işaretinden kapatıp tekrar tıkla.")
-                return
-            elif sorular:
-                st.session_state.soru_paketi[ders] = sorular
-                st.session_state.aktif_index[ders] = 0
-                st.session_state.kontrol_edildi[ders] = [False] * len(sorular)
-                st.rerun()
+        # İlerleme çubuğu ile hızlı toplama görseli
+        ilerleme_alani = st.empty()
+        havuz_gecici = []
+        
+        for s_no in range(hedef_adet):
+            ilerleme_alani.info(f"⚡ Senin için {ders} dersi {s_no + 1}. soru ışık hızında hazırlanıyor... 🚀")
+            tek_soru = ai_tek_soru_uret(ders)
+            if tek_soru:
+                havuz_gecici.append(tek_soru)
+            else:
+                # Başarısız olursa bir kez daha hızlıca dene
+                tek_soru_tekrar = ai_tek_soru_uret(ders)
+                if tek_soru_tekrar: havuz_gecici.append(tek_soru_tekrar)
+        
+        ilerleme_alani.empty()
+        
+        if len(havuz_gecici) > 0:
+            st.session_state.soru_paketi[ders] = havuz_gecici
+            st.session_state.aktif_index[ders] = 0
+            st.session_state.kontrol_edildi[ders] = [False] * len(havuz_gecici)
+            st.rerun()
+        else:
+            st.error("⚠️ Sunucu bağlantı hatası oluştu. Lütfen pencereyi kapatıp tekrar kutucuğa tıkla.")
+            return
 
     havuz = st.session_state.soru_paketi.get(ders, [])
     if not havuz: return
@@ -171,7 +183,6 @@ def ac_pop_up(ders, hedef_adet, bugun):
             key=f"canvas_{ders}_{idx}"
         )
 
-
 # ==========================================
 # 🏠 ANA EKRAN VE PANELLER
 # ==========================================
@@ -213,8 +224,7 @@ if panel == "Veli / Yönetici Paneli":
             for h in hedefler_data: grafik_haritasi[h[0]] = {"hedef": h[1], "dogru": 0, "yanlis": 0}
             for c in cozumler_data:
                 if c[0] not in grafik_haritasi: grafik_haritasi[c[0]] = {"hedef": 0, "dogru": 0, "yanlis": 0}
-                grafik_haritasi[c[0]]["dogru"] = c[1]
-                grafik_haritasi[c[0]]["yanlis"] = c[2]
+                grafik_haritasi[c[0]] = {"hedef": grafik_haritasi[c[0]]["hedef"], "dogru": c[1], "yanlis": c[2]}
             
             if grafik_haritasi:
                 dersler_list = list(grafik_haritasi.keys())
