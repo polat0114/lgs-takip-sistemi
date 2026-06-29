@@ -1,6 +1,6 @@
 import streamlit as st
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 import google.generativeai as genai
 import plotly.graph_objects as go
 import os
@@ -8,12 +8,12 @@ import random
 from streamlit_drawable_canvas import st_canvas
 
 # Sayfa Yapılandırması
-st.set_page_config(layout="wide", page_title="Şampiyonun LGS Karargâhı")
+st.set_page_config(layout="wide", page_title="Poyraz Efe Yenice Eğitim Programı")
 
-DOGRU_SIFRE = "1234"
+DOGRU_SIFRE = "2201"
 
-# 🔑 Mevcut API Anahtarın ve Yapılandırma
-API_ANAHTARI = "AQ.Ab8RN6LDAlrgDC_ME8tmHaHL-vAIaTT88xhhR8MekLo7Cw7tjQ"
+# 🔑 API Anahtarın ve Yapılandırma
+API_ANAHTARI = "AQ.Ab8RN6L3jbuS0MBwPk3gD7dPJFIwan507hx-LONL8E_4dDi_Aw"
 genai.configure(api_key=API_ANAHTARI)
 
 # Profil Resmi CSS Ayarı
@@ -29,32 +29,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 TUM_DERSLER = ["Türkçe", "Matematik", "Fen Bilimleri", "İnkılap Tarihi", "İngilizce", "Din Kültürü"]
-
-# ==========================================
-# 📦 GÜVENLİ VE ZENGİN LGS SORU HAVUZU
-# ==========================================
-OFFLINE_HAVUZ = {
-    "Matematik": [
-        {"konu": "Çarpanlar ve Katlar", "soru": "Kenar uzunlukları 12 cm ve 18 cm olan kartlar yan yana dizilerek bir kare oluşturulacaktır. Bu iş için en az kaç kart gerekir?", "A": "4", "B": "6", "C": "9", "D": "12", "cevap": "B", "cozum": "💡 12 ve 18'in en küçük ortak katı (EKOK) 36'dır. Kare kenarı 36 cm olmalıdır. (36/12) * (36/18) = 3 * 2 = 6 kart gerekir."},
-        {"konu": "Üslü İfadeler", "soru": "2^5 ile 5^5 sayılarının çarpımı kaç basamaklı bir sayıdır?", "A": "5", "B": "6", "C": "7", "D": "8", "cevap": "B", "cozum": "💡 Üsler aynı olduğunda tabanlar çarpılır: 2^5 * 5^5 = 10^5 olur. Bu sayı 1'in yanına 5 sıfır eklenmesiyle oluşur, yani 6 basamaklıdır."}
-    ],
-    "Türkçe": [
-        {"konu": "Sözcükte Anlam", "soru": "'Ağır' sözcüğü aşağıdaki cümlelerin hangisinde 'sorumluluğu çok olan, çetin' anlamında kullanılmıştır?", "A": "Bu çuval çok ağır, taşıyamadım.", "B": "Yeni dönemde bize çok ağır bir görev verdiler.", "C": "Yaşlı adam ağır adımlarla yürüyordu.", "D": "Koridorda çok ağır bir koku vardı.", "cevap": "B", "cozum": "💡 'Ağır görev' çetin, sorumluluğu yüksek ve zorlu işler için kullanılan mecaz bir anlamdır."},
-        {"konu": "Cümlede Anlam", "soru": "Aşağıdaki cümlelerin hangisinde 'öznel' bir anlatım söz conosudur?", "A": "Yazarın son kitabı dün akşam piyasaya çıktı.", "B": "Türkiye'nin başkenti Ankara'dır.", "C": "Bu film, izlediğim en sürükleyici ve harika yapımdı.", "D": "Kitap toplamda 120 sayfadan oluşuyor.", "cevap": "C", "cozum": "💡 'Sürükleyici ve harika' ifadeleri kişisel beğeni içerdiği için özneldir; diğer şıklar ise kanıtlanabilir nesnel yargılardır."}
-    ],
-    "Fen Bilimleri": [
-        {"konu": "Mevsimler ve İklim", "soru": "21 Haziran tarihinde Kuzey Yarım Küre'de hangi mevsimin başlangıcı yaşanır?", "A": "İlkbahar", "B": "Yaz", "C": "Sonbahar", "D": "Kış", "cevap": "B", "cozum": "💡 21 Haziran'da Kuzey Yarım Küre Güneş ışınlarını en dik açıyla alır ve en uzun gündüzü yaşayarak Yaz mevsimine başlar."}
-    ],
-    "İnkılap Tarihi": [
-        {"konu": "Bir Kahraman Doğuyor", "soru": "Mustafa Kemal'in fikir hayatının oluşmasında aşağıdaki şehirlerden hangisi doğrudan etkili olmamıştır?", "A": "Selanik", "B": "Manastır", "C": "İstanbul", "D": "Londra", "cevap": "D", "cozum": "💡 Mustafa Kemal Selanik, Manastır, Sofya ve İstanbul'da eğitim görüp görev yapmıştır. Londra'nın fikir hayatı üzerinde doğrudan bir etkisi yoktur."}
-    ],
-    "İngilizce": [
-        {"konu": "Friendship", "soru": "Choose the best option: 'A true friend always ______ you when you need help.'", "A": "argues", "B": "backs up", "C": "lies", "D": "refuses", "cevap": "B", "cozum": "💡 'Back up' arkasında durmak, desteklemek anlamına gelir. Gerçek bir dost yardım gerektiğinde destek olur."}
-    ],
-    "Din Kültürü": [
-        {"konu": "Kader ve Kaza", "soru": "Aşağıdakilerden hangisi insanın cüzi iradesi (kendi özgür seçimi) kapsamında değerlendirilir?", "A": "Doğum yeri", "B": "Meslek seçimi", "C": "Göz rengi", "D": "Ölüm tarihi", "cevap": "B", "cozum": "💡 İnsanın kendi kararlarıyla seçebildiği eylemler (meslek, iyilik/kötülük) cüzi iradedir; doğum veya ölüm gibi müdahale edemediği alanlar ise külli iradedir."}
-    ]
-}
 
 # Veritabanı Modülleri
 def veri_getir(query, params=()):
@@ -72,30 +46,33 @@ def veri_kaydet(query, params=()):
     conn.commit()
     conn.close()
 
-# Akıllı ve Esnek Soru Üretici
+# 🧠 HAFIZALI VE YANLIŞ ODAKLI YAPAY ZEKA MOTORU
 def ai_soru_uret_ve_temizle(ders, adet=5):
-    if not API_ANAHTARI.startswith("AIzaSy"):
-        havuz = OFFLINE_HAVUZ.get(ders, OFFLINE_HAVUZ["Matematik"])
-        if len(havuz) < adet: return havuz
-        return random.sample(havuz, adet)
-        
+    yanlislar = veri_getir("SELECT DISTINCT konu_adi FROM cozumler WHERE ders = ? AND yanlis_sayisi > 0", (ders,))
+    yanlis_konular = [y[0] for y in yanlislar if y[0]]
+    
+    konu_puanlama_ve_stresi = ""
+    if yanlis_konular:
+        konu_puanlama_ve_stresi = f"\nÖNEMLİ: Öğrenci daha önce şu konularda yanlış yapmıştır: {', '.join(yanlis_konular)}. Bu konuları pekiştirecek benzer tarzda mantık muhakeme sorularına ağırlık ver."
+
     try:
         model = genai.GenerativeModel('gemini-1.5-flash')
         prompt = f"""
-        Sen Türkiye MEB müfredat uzmanı bir LGS öğretmenisin.
-        Sadece Türkiye MEB 7. Sınıf {ders} müfredatına bağlı kalarak {adet} adet LGS tarzı yeni nesil soru hazırla.
-        Her sorunun başına tam olarak 'SORU_BASLA' ifadesini koy.
-        Aşağıdaki formata harfiyen uy:
+        Sen Türkiye MEB müfredatına tamamen hakim uzman bir LGS öğretmenisin.
+        Yalnızca 7. Sınıf {ders} müfredatına uygun, mantık muhakeme odaklı, LGS tarzı yeni nesil tam {adet} adet özgün soru hazırla. {konu_puanlama_ve_stresi}
+        
+        Her sorunun başlangıcına mutlaka 'SORU_BASLA' ifadesini koy.
+        Format kurallarına kesinlikle uy:
         
         SORU_BASLA
         KONU: [Konu Adı]
         SORU: [Soru Metni]
-        A: [A Şıkkı]
-        B: [B Şıkkı]
-        C: [C Şıkkı]
-        D: [D Şıkkı]
+        A: [A Seçeneği]
+        B: [B Seçeneği]
+        C: [C Seçeneği]
+        D: [D Seçeneği]
         CEVAP: [Sadece A, B, C veya D harfi]
-        COZUM: [Çözüm açıklaması]
+        COZUM: [Çözüm ve püf noktası açıklaması]
         """
         response = model.generate_content(prompt)
         metin = response.text
@@ -106,7 +83,7 @@ def ai_soru_uret_ve_temizle(ders, adet=5):
         for blok in bloklar:
             if "SORU:" in blok and "CEVAP:" in blok:
                 satirlar = [s.strip() for s in blok.strip().split("\n") if s.strip()]
-                obj = {"konu": "Genel Tekrar", "soru": "Soru yüklenemedi.", "A": "", "B": "", "C": "", "D": "", "cevap": "A", "cozum": "Çözüm mevcut değil."}
+                obj = {"konu": "Genel Tekrar", "soru": "Soru yüklenemedi.", "A": "", "B": "", "C": "", "D": "", "cevap": "A", "cozum": "Açıklama yok."}
                 for s in satirlar:
                     if s.upper().startswith("KONU:"): obj["konu"] = s[5:].strip()
                     elif s.upper().startswith("SORU:"): obj["soru"] = s[5:].strip()
@@ -119,11 +96,9 @@ def ai_soru_uret_ve_temizle(ders, adet=5):
                 if obj["soru"] != "Soru yüklenemedi.":
                     sonuclar.append(obj)
                     
-        if len(sonuclar) == 0:
-            return OFFLINE_HAVUZ.get(ders, OFFLINE_HAVUZ["Matematik"])
-        return sonuclar
-    except:
-        return OFFLINE_HAVUZ.get(ders, OFFLINE_HAVUZ["Matematik"])
+        return sonuclar if sonuclar else []
+    except Exception as e:
+        return [{"konu": "Bağlantı", "soru": f"Yapay zeka bağlantı hatası: {str(e)}", "A": "-", "B": "-", "C": "-", "D": "-", "cevap": "A", "cozum": "API key kontrol edin."}]
 
 # State Yönetimi
 if "soru_paketi" not in st.session_state: st.session_state.soru_paketi = {}
@@ -133,7 +108,7 @@ if "veli_secilen_ders" not in st.session_state: st.session_state.veli_secilen_de
 if "show_popup_ders" not in st.session_state: st.session_state.show_popup_ders = None
 
 # ==========================================
-# 🎯 ÖZEL POP-UP ÇÖZÜM EKRANI MİMARİSİ
+# 🎯 ÖZEL POP-UP DIALOG MODÜLÜ
 # ==========================================
 @st.dialog("🎯 LGS Çözüm Karargâhı", width="large")
 def pop_up_pencere(ders, bugun):
@@ -143,7 +118,6 @@ def pop_up_pencere(ders, bugun):
     if idx < len(havuz):
         soru = havuz[idx]
         
-        # Üst Navigasyon Okları
         col_sol, col_orta, col_sag = st.columns([1, 4, 1])
         with col_sol:
             if idx > 0:
@@ -177,9 +151,9 @@ def pop_up_pencere(ders, bugun):
                     else:
                         st.session_state.kontrol_edildi[ders][idx] = True
                         s_harf = secenek[0]
-                        d_harf = soru.get('cevap', 'A').strip().upper()
+                        dogru_harf = soru.get('cevap', 'A').strip().upper()
                         
-                        if s_harf == d_harf:
+                        if s_harf == dogru_harf:
                             veri_kaydet("INSERT INTO cozumler (tarih, ders, konu_adi, toplam_cozulen, dogru_sayisi, yanlis_sayisi, anlasilmayan_detay) VALUES (?, ?, ?, 1, 1, 0, '')", (bugun, ders, soru.get('konu')))
                         else:
                             veri_kaydet("INSERT INTO cozumler (tarih, ders, konu_adi, toplam_cozulen, dogru_sayisi, yanlis_sayisi, anlasilmayan_detay) VALUES (?, ?, ?, 1, 0, 1, ?)", (bugun, ders, soru.get('konu'), f"Hata: {s_harf} seçildi"))
@@ -187,12 +161,12 @@ def pop_up_pencere(ders, bugun):
             else:
                 st.markdown("---")
                 s_harf = secenek[0] if secenek else ""
-                d_harf = soru.get('cevap', 'A').strip().upper()
-                if s_harf == d_harf:
+                dogru_harf = soru.get('cevap', 'A').strip().upper()
+                if s_harf == dogru_harf:
                     st.success(f"🎉 Doğru! {soru.get('cozum')}")
                 else:
-                    st.error(f"❌ Yanlış! Doğru Cevap: {d_harf}")
-                    st.warning(soru.get('cozum', 'Çözüm açıklaması mevcut değil.'))
+                    st.error(f"❌ Yanlış! Doğru Cevap: {dogru_harf}")
+                    st.warning(soru.get('cozum', 'Açıklama mevcut değil.'))
                 
                 st.write("")
                 if idx < len(havuz) - 1:
@@ -228,6 +202,8 @@ st.divider()
 # ==========================================
 if panel == "Veli / Yönetici Paneli":
     st.header("👨‍🏫 Veli Analiz Raporları")
+    st.session_state.show_popup_ders = None
+    
     if not st.session_state.get("veli_giris_yapildi"):
         girilen_sifre = st.text_input("Giriş Şifresi:", type="password")
         if st.button("Giriş Yap", use_container_width=True):
@@ -240,8 +216,10 @@ if panel == "Veli / Yönetici Paneli":
             st.session_state.veli_giris_yapildi = False
             st.rerun()
             
-        tab1, tab2 = st.tabs(["📊 Durum Grafiği", "🎯 Hedef Belirle"])
+        tab1, tab2, tab3 = st.tabs(["📊 Genel Durum Grafiği", "📆 Günlük Ödev / Hedef Takibi", "🎯 Yeni Hedef Belirle"])
+        
         with tab1:
+            st.subheader("📈 Ders Bazlı Kümülatif Başarı Grafiği")
             hedefler_data = veri_getir("SELECT ders, SUM(hedef_soru) FROM hedefler GROUP BY ders")
             cozumler_data = veri_getir("SELECT ders, SUM(dogru_sayisi), SUM(yanlis_sayisi) FROM cozumler GROUP BY ders")
             grafik_haritasi = {h[0]: {"hedef": h[1], "dogru": 0, "yanlis": 0} for h in hedefler_data}
@@ -252,14 +230,54 @@ if panel == "Veli / Yönetici Paneli":
             if grafik_haritasi:
                 dersler_list = list(grafik_haritasi.keys())
                 fig = go.Figure(data=[
-                    go.Bar(name='Hedef', x=dersler_list, y=[grafik_haritasi[d]["hedef"] for d in dersler_list], marker_color='#1f77b4'),
-                    go.Bar(name='Doğru', x=dersler_list, y=[grafik_haritasi[d]["dogru"] for d in dersler_list], marker_color='green'),
-                    go.Bar(name='Yanlış', x=dersler_list, y=[grafik_haritasi[d]["yanlis"] for d in dersler_list], marker_color='red')
+                    go.Bar(name='Toplam Verilen Hedef', x=dersler_list, y=[grafik_haritasi[d]["hedef"] for d in dersler_list], marker_color='#1f77b4'),
+                    go.Bar(name='Doğru Çözülen', x=dersler_list, y=[grafik_haritasi[d]["dogru"] for d in dersler_list], marker_color='green'),
+                    go.Bar(name='Yanlış Çözülen', x=dersler_list, y=[grafik_haritasi[d]["yanlis"] for d in dersler_list], marker_color='red')
                 ])
                 st.plotly_chart(fig, use_container_width=True)
-            else: st.info("Henüz veri yok.")
+            else: st.info("Henüz kümülatif veri bulunamadı.")
+            
         with tab2:
-            tarih = st.date_input("Tarih", datetime.now()).strftime('%Y-%m-%d')
+            st.subheader("📆 Gün Bazlı Ödev Tamamlama Analizi")
+            secilen_tarih = st.date_input("Takip Etmek İstediğiniz Günü Seçin:", datetime.now() - timedelta(days=1))
+            tarih_str = secilen_tarih.strftime('%Y-%m-%d')
+            
+            # Seçilen güne ait hedefleri ve çözülen verileri çekiyoruz
+            gunluk_hedefler = veri_getir("SELECT ders, hedef_soru FROM hedefler WHERE tarih = ?", (tarih_str,))
+            gunluk_cozumler = veri_getir("SELECT ders, SUM(toplam_cozulen), SUM(dogru_sayisi) FROM cozumler WHERE tarih = ? GROUP BY ders", (tarih_str,))
+            
+            hedef_dict = {gh[0]: gh[1] for gh in gunluk_hedefler}
+            cozum_dict = {gc[0]: {"cozulen": gc[1], "dogru": gc[2]} for gc in gunluk_cozumler}
+            
+            st.write(f"### 🗓️ {secilen_tarih.strftime('%d.%m.%Y')} Tarihli Karargâh Raporu")
+            
+            if hedef_dict:
+                for d in TUM_DERSLER:
+                    if d in hedef_dict:
+                        v_hedef = hedef_dict[d]
+                        c_durum = cozum_dict.get(d, {"cozulen": 0, "dogru": 0})
+                        
+                        oran = min(int((c_durum["cozulen"] / v_hedef) * 100), 100) if v_hedef > 0 else 0
+                        
+                        col_d1, col_d2, col_d3 = st.columns([2, 5, 2])
+                        with col_d1:
+                            st.markdown(f"**{d}**")
+                            st.caption(f"Hedef: {v_hedef} Soru | Çözülen: {c_durum['cozulen']}")
+                        with col_d2:
+                            st.progress(oran / 100)
+                        with col_d3:
+                            if oran >= 100:
+                                st.success(f"🎯 %{oran} Tamamlandı! ({c_durum['dogru']} D)")
+                            elif oran > 0:
+                                st.warning(f"⏳ %{oran} İlerledi ({c_durum['dogru']} D)")
+                            else:
+                                st.error("❌ Hiç Dokunulmadı")
+            else:
+                st.info("Seçilen tarihte Poyraz Efe'ye atanmış herhangi bir hedef bulunamadı.")
+                
+        with tab3:
+            st.subheader("🎯 Yeni Günlük Soru Hedefi Belirle")
+            tarih = st.date_input("Hedef Tarihi", datetime.now()).strftime('%Y-%m-%d')
             cols_veli = st.columns(3)
             for i, d in enumerate(TUM_DERSLER):
                 if cols_veli[i % 3].button(d, key=f"v_sel_{d}", type="primary" if st.session_state.veli_secilen_ders == d else "secondary", use_container_width=True):
@@ -288,17 +306,15 @@ else:
         if cols_ogr[i % 3].button(d, key=f"ogr_btn_{d}", disabled=not is_active, type=button_style, use_container_width=True):
             st.session_state.show_popup_ders = d
             if d not in st.session_state.soru_paketi:
-                with st.spinner("Sorular özenle hazırlanıyor... ⏳"):
+                with st.spinner("Yapay zeka geçmiş hataları analiz ediyor ve soruları hazırlıyor... 🧠⏳"):
                     cevap = ai_soru_uret_ve_temizle(d, adet=hedef_adetler[d])
                     if cevap:
                         st.session_state.soru_paketi[d] = cevap
                         st.session_state.aktif_index[d] = 0
                         st.session_state.kontrol_edildi[d] = [False] * len(cevap)
-                        st.rerun()
-            else:
-                st.rerun()
+            st.rerun()
 
-    # 🚀 AKTİF OKUNDUĞUNDA DIALOG PENCERESİNİ TETİKLEME ALANI
+    # Pop-up Tetikleme Alanı
     if st.session_state.show_popup_ders and st.session_state.show_popup_ders in st.session_state.soru_paketi:
         pop_up_pencere(st.session_state.show_popup_ders, bugun)
                 
