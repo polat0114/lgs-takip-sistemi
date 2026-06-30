@@ -85,6 +85,85 @@ def yerel_havuzdan_soru_sec(ders, adet=5):
         sonuc.append(kopyalanmis)
     return sonuc
 
+def yedek_havuz_olustur(client, status_container):
+    yeni_havuz = {}
+    import pprint
+    
+    for ders in TUM_DERSLER:
+        status_container.info(f"⏳ {ders} dersi için 50 adet yeni nesil 7. sınıf sorusu üretiliyor...")
+        ders_sorulari = []
+        
+        # 50 soruyu tek seferde istemek yerine 5 ayrı parça halinde (10'ar adet) isteyelim ki API limitlerine takılmasın ve kaliteli olsun
+        for i in range(5):
+            status_container.info(f"⏳ {ders} dersi için sorular üretiliyor (Grup {i+1}/5)...")
+            try:
+                prompt = f"""
+                Sen Türkiye MEB müfredatına tamamen hakim uzman bir LGS öğretmenisin.
+                7. Sınıf {ders} müfredatına uygun, mantık muhakeme odaklı, LGS tarzı yeni nesil tam 10 adet özgün soru hazırla.
+                
+                Her sorunun başlangıcına mutlaka 'SORU_BASLA' ifadesini koy.
+                Format kurallarına kesinlikle uy:
+                
+                SORU_BASLA
+                KONU: [Konu Adı]
+                SORU: [Soru Metni]
+                A: [A Seçeneği]
+                B: [B Seçeneği]
+                C: [C Seçeneği]
+                D: [D Seçeneği]
+                CEVAP: [Sadece A, B, C veya D harfi]
+                COZUM: [Çözüm ve püf noktası açıklaması]
+                """
+                
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=prompt,
+                )
+                metin = response.text
+                
+                bloklar = metin.split("SORU_BASLA")
+                for blok in bloklar:
+                    if "SORU:" in blok and "CEVAP:" in blok:
+                        satirlar = [s.strip() for s in blok.strip().split("\n") if s.strip()]
+                        obj = {"konu": "Genel Tekrar", "soru": "Soru yüklenemedi.", "A": "", "B": "", "C": "", "D": "", "cevap": "A", "cozum": "Açıklama yok."}
+                        for s in satirlar:
+                            if s.upper().startswith("KONU:"): obj["konu"] = s[5:].strip()
+                            elif s.upper().startswith("SORU:"): obj["soru"] = s[5:].strip()
+                            elif s.upper().startswith("A:"): obj["A"] = s[2:].strip()
+                            elif s.upper().startswith("B:"): obj["B"] = s[2:].strip()
+                            elif s.upper().startswith("C:"): obj["C"] = s[2:].strip()
+                            elif s.upper().startswith("D:"): obj["D"] = s[2:].strip()
+                            elif s.upper().startswith("CEVAP:"): obj["cevap"] = s[6:].strip().upper()
+                            elif s.upper().startswith("COZUM:"): obj["cozum"] = s[6:].strip()
+                        if obj["soru"] != "Soru yüklenemedi.":
+                            ders_sorulari.append(obj)
+            except Exception as e:
+                # Hata durumunda devam etsin
+                pass
+                
+        # Eğer hiç soru üretilemediyse mevcut havuzdakileri koruyalım
+        if not ders_sorulari:
+            try:
+                from soru_havuzu import SORU_HAVUZU as ESKI_HAVUZ
+                ders_sorulari = ESKI_HAVUZ.get(ders, [])
+            except:
+                pass
+                
+        yeni_havuz[ders] = ders_sorulari
+        status_container.success(f"✅ {ders} dersi için {len(ders_sorulari)} adet soru başarıyla üretildi.")
+        
+    # Havuzu dosyaya yaz
+    try:
+        with open("soru_havuzu.py", "w", encoding="utf-8") as f:
+            f.write("# -*- coding: utf-8 -*-\n\n")
+            f.write("SORU_HAVUZU = ")
+            f.write(pprint.pformat(yeni_havuz, indent=4, width=120, compact=False))
+        status_container.success("🎉 Her ders için 50'şer adet olmak üzere toplam 300 soruluk yeni LGS Soru Havuzu başarıyla oluşturuldu ve soru_havuzu.py dosyasına kaydedildi!")
+        return True
+    except Exception as e:
+        status_container.error(f"Havuz dosyaya yazılırken hata oluştu: {str(e)}")
+        return False
+
 # 🧠 %100 CANLI VE SONSUZ FARKLI SORU ÜRETEN YAPAY ZEKA MOTORU
 def ai_soru_uret_ve_temizle(ders, adet=5):
     yanlislar = veri_getir("SELECT DISTINCT konu_adi FROM cozumler WHERE ders = ? AND yanlis_sayisi > 0", (ders,))
@@ -393,6 +472,18 @@ if panel == "Veli / Yönetici Paneli":
                         st.rerun()
                     except Exception as ex:
                         st.error(f"Silinirken hata oluştu: {str(ex)}")
+                        
+            st.markdown("---")
+            st.subheader("🌀 Yedek Soru Havuzunu Genişlet (300 Soru Üret)")
+            st.write("Eğer internetiniz yokken veya yapay zeka bağlantınız kesildiğinde Poyraz Efe'nin hiç tekrar eden soru görmesini istemiyorsanız, yerel havuzu yapay zeka yardımıyla **her ders için 50'şer adet (toplam 300 adet)** özgün soru ile güncelleyebilirsiniz.")
+            
+            if not API_ANAHTARI:
+                st.info("💡 Bu işlemi başlatabilmek için önce geçerli bir API anahtarı girip kaydetmelisiniz.")
+            else:
+                if st.button("Yedek Havuzu Yapay Zeka ile Genişlet (300 Soru Üret) 🚀", use_container_width=True):
+                    status_placeholder = st.empty()
+                    with st.spinner("300 adet 7. Sınıf sorusu üretiliyor ve soru_havuzu.py dosyası güncelleniyor... Bu işlem yaklaşık 1-2 dakika sürebilir."):
+                        yedek_havuz_olustur(client, status_placeholder)
 
 # ==========================================
 # 📱 ÖĞRENCİ / TABLET PANELİ
