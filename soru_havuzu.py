@@ -3,314 +3,314 @@
 SORU_HAVUZU = {
     "Türkçe": [
         {
+            "konu": "Fiiller (Anlam Özellikleri)",
+            "soru": "Fiiller anlam özelliklerine göre iş (kılış), durum ve oluş fiilleri olmak üzere üçe ayrılır.\n\nBuna göre aşağıdaki cümlelerin hangisinde 'oluş fiili' kullanılmıştır?",
+            "A": "Poyraz Efe, kütüphaneden aldığı kitabı iki günde okudu.",
+            "B": "Uzun süre sulanmayan çiçeklerin yaprakları sarardı.",
+            "C": "Misafirler gelmeden önce odasını güzelce temizledi.",
+            "D": "Yorucu bir günün ardından erkenden uyudu.",
+            "cevap": "B",
+            "cozum": "Oluş fiilleri, öznenin iradesi dışında kendiliğinden gerçekleşen ve zamanla meydana gelen değişimi ifade eder. 'Sararmak' fiili kendiliğinden gerçekleşen bir değişim olduğu için oluş fiilidir. A ve C iş (kılış), D ise durum fiilidir."
+        },
+        {
+            "konu": "Çekimli Fiiller (Kip ve Kişi)",
+            "soru": "'Yarın sabah erkenden parkta yürüyüş yapalım.' cümlesindeki fiilin kipi ve kişisi aşağıdakilerden hangisinde doğru verilmiştir?",
+            "A": "Gereklilik kipi - 1. çoğul şahıs",
+            "B": "İstek kipi - 1. çoğul şahıs",
+            "C": "Emir kipi - 2. çoğul şahıs",
+            "D": "Geniş zaman - 1. tekil şahıs",
+            "cevap": "B",
+            "cozum": "'Yapalım' fiili, istek kipi eki olan '-e/-a' ekini almıştır (yap-a-lım) ve eylemi gerçekleştirecek olan 'biz' (1. çoğul şahıs) olduğundan istek kipi 1. çoğul şahısla çekimlenmiştir."
+        },
+        {
             "konu": "Paragrafta Anlam",
-            "soru": "Bir yazar şöyle der: 'Kitaplar, insanlığın ortak hafızasıdır. Onları okumayan biri, sadece kendi ömrü kadar yaşar; okuyan ise insanlık tarihi kadar uzun bir ömre sahip olur.'\n\nBu metinde asıl anlatılmak istenen aşağıdakilerden hangisidir?",
-            "A": "Kitap okumanın insanın hayal gücünü geliştirdiği",
-            "B": "Okuma alışkanlığının erken yaşlarda edinilmesi gerektiği",
-            "C": "Kitapların, okuyana geçmiş kuşakların tecrübelerini aktararak onu zenginleştirdiği",
-            "D": "Tarih kitaplarının diğer kitaplardan daha faydalı olduğu",
+            "soru": "Sağlıklı bir iletişim kurmanın ilk kuralı iyi bir dinleyici olmaktır. Karşısındakini dikkatle dinlemeyen, onun sözünü kesen ya da sürekli kendi anlatacaklarını düşünen biri sağlıklı bir bağ kuramaz. Dinlemek, sadece sessiz durmak değil; anlatılmak isteneni anlamaya çalışmaktır.\n\nBu metnin ana düşüncesi aşağıdakilerden hangisidir?",
+            "A": "İletişimde en önemli unsur konuşma yeteneğidir.",
+            "B": "Sessiz kalmak her zaman en doğru iletişim yoludur.",
+            "C": "Sağlıklı iletişimin temeli, etkin ve doğru dinlemedir.",
+            "D": "Çok konuşan insanlar iletişimde daha başarılı olurlar.",
             "cevap": "C",
-            "cozum": "Yazar, kitap okuyan kişinin 'insanlık tarihi kadar uzun yaşayacağını' söyleyerek, kitapların geçmiş birikim ve tecrübeleri aktardığını vurgulamaktadır."
+            "cozum": "Metnin tamamında sağlıklı iletişim kurabilmek için iyi ve etkin bir dinleyici olmanın öneminden bahsedilmektedir. Bu nedenle ana düşünce C şıkkıdır."
         },
         {
-            "konu": "Sözcükte Anlam",
-            "soru": "Aşağıdaki cümlelerin hangisinde 'göz yummak' deyimi mecaz anlamda 'kusurları görmezden gelmek, ses çıkarmamak' anlamında kullanılmıştır?",
-            "A": "Çok yorulduğu için koltukta beş dakika göz yumdu.",
-            "B": "Sınıftaki arkadaşının kopya çekmesine göz yumması doğru değildi.",
-            "C": "Karanlık odaya girince ışığa alışana kadar gözünü yumdu.",
-            "D": "Fırtına çıkınca toz kaçmasın diye gözlerini sıkıca yumdu.",
-            "cevap": "B",
-            "cozum": "'Göz yummak' deyimi B şıkkında bir hataya, kusura ses çıkarmamak, engellememek anlamında kullanılmıştır. Diğer şıklarda gerçek anlamda gözünü kapatmak kastedilmiştir."
-        },
-        {
-            "konu": "Fiilimsiler",
-            "soru": "Fiilimsiler, fiil kök veya gövdelerinden türeyerek cümlede isim, sıfat veya zarf görevinde kullanılan sözcüklerdir.\n\nBuna göre aşağıdaki cümlelerin hangisinde sıfat-fiil kullanılmıştır?",
-            "A": "Gülünce gözlerinin içi gülüyordu adeta.",
-            "B": "Yarın sabah erkenden yola çıkacağız.",
-            "C": "Ders çalışırken müzik dinlemeyi çok severim.",
-            "D": "Gelecek günlerin bize neler getireceğini bilemeyiz.",
-            "cevap": "D",
-            "cozum": "'Gelecek günlerin' ifadesindeki 'gelecek' sözcüğü fiil kökünden türemiş (-ecek sıfat-fiil eki almış) ve önündeki ismi niteleyerek sıfat-fiil olmuştur. A'da 'gülünce' zarf-fiil, C'de 'çalışırken' zarf-fiildir."
-        },
-        {
-            "konu": "Cümlede Anlam",
-            "soru": "I. Düzenli spor yaptığı için son zamanlarda kendini çok dinç hissediyor.\nII. Sınavda başarılı olmak amacıyla her gün planlı soru çözüyor.\nIII. Hava soğuduğundan kalın paltosunu dolaptan çıkardı.\nIV. Arkadaşına yardım etmek üzere erkenden evden ayrıldı.\n\nYukarıdaki cümlelerden hangileri 'amaç-sonuç' ilişkisi taşımaktadır?",
-            "A": "I ve III",
-            "B": "II ve IV",
-            "C": "I ve II",
-            "D": "III ve IV",
-            "cevap": "B",
-            "cozum": "II. cümlede 'başarılı olmak amacıyla' ve IV. cümlede 'yardım etmek üzere (amacıyla)' ifadeleri amaç belirtir. I ve III ise neden-sonuç (gerekçe) bildiren cümlelerdir."
+            "konu": "Fiilde Yapı",
+            "soru": "Aşağıdaki cümlelerin hangisinde 'kurallı birleşik fiil' kullanılmıştır?",
+            "A": "Sınav sorularını çok hızlı çözebildi.",
+            "B": "Öğretmenimizin anlattığı konuyu hemen anladım.",
+            "C": "Bu konuyu onunla uzun uzun görüştük.",
+            "D": "Poyraz Efe, ödevlerini erkenden bitirdi.",
+            "cevap": "A",
+            "cozum": "'Çözebildi' fiili, 'çözmek' fiili ile 'bilmek' yardımcı fiilinin birleşmesiyle oluşmuş bir 'yeterlilik fiili'dir. Yeterlilik fiili bir kurallı birleşik fiil türüdür."
         },
         {
             "konu": "Yazım Kuralları",
-            "soru": "Aşağıdaki cümlelerin hangisinde büyük harflerin yazımıyla ilgili bir yanlışlık yapılmıştır?",
-            "A": "Bu yıl da Van Gölü kıyısında festival düzenlenecekmiş.",
-            "B": "Doktor Ahmet Bey hastalarını güler yüzle karşıladı.",
-            "C": "Her bayramda Türk Dil Kurumu yeni yayınlar çıkarır.",
-            "D": "Dün akşam ingilizce sınavına hazırlık yaptık.",
-            "cevap": "D",
-            "cozum": "Dil ve millet isimleri her zaman büyük harfle başlar. Dolayısıyla 'ingilizce' sözcüğü 'İngilizce' şeklinde yazılmalıdır."
+            "soru": "Aşağıdaki cümlelerin hangisinde 'de' bağlacının yazımıyla ilgili bir yanlışlık yapılmıştır?",
+            "A": "Sende bizimle sinemaya gelecek misin?",
+            "B": "Kitabını evde unuttuğu için geri dönmek zorunda kaldı.",
+            "C": "Bu soruyu ben de senin gibi kolayca çözdüm.",
+            "D": "Yolda yürürken eski bir arkadaşıma rastladım.",
+            "cevap": "A",
+            "cozum": "A şıkkındaki 'sende' sözcüğündeki '-de' bağlaçtır ve ayrı yazılmalıdır ('Sen de bizimle...'). Cümleden çıkarıldığında anlam bozulmaz. B ve D şıklarındaki '-de'ler ise bulunma durumu ekidir ve bitişik yazılması doğrudur."
         }
     ],
     "Matematik": [
         {
-            "konu": "Çarpanlar ve Katlar",
-            "soru": "Kenar uzunlukları 24 metre ve 36 metre olan dikdörtgen şeklindeki bir bahçenin etrafına, köşelere de gelmek şartıyla eşit aralıklarla ağaç dikilecektir.\n\nBuna göre iki ağaç arasındaki mesafe en fazla kaç metre olabilir?",
-            "A": 4,
-            "B": 6,
-            "C": 12,
-            "D": 18,
-            "cevap": "C",
-            "cozum": "Eşit aralıklarla dikim yapılacağı için aralık uzunluğu hem 24'ü hem de 36'yı kalansız bölmelidir. Mesafenin en fazla olması istendiğinden EBOB(24, 36) bulunur. EBOB(24, 36) = 12 metredir."
-        },
-        {
-            "konu": "Üslü İfadeler",
-            "soru": "Bir laboratuvardaki bakteri sayısı her 1 saatin sonunda 2 katına çıkmaktadır. Başlangıçta laboratuvarda 2^5 adet bakteri olduğuna göre, 4 saatin sonunda laboratuvardaki bakteri sayısı kaç olur?",
-            "A": "2^9",
-            "B": "2^20",
-            "C": "4^5",
-            "D": "2^12",
+            "konu": "Tam Sayılarla İşlemler",
+            "soru": "(-8) . (+3) - (-12) : (-4) işleminin sonucu kaçtır?",
+            "A": -27,
+            "B": -21,
+            "C": 21,
+            "D": 27,
             "cevap": "A",
-            "cozum": "Her saat 2 katına çıkıyorsa 4 saatin sonunda bakteri sayısı başlangıçtaki sayının 2^4 katı olur. (2^5) * (2^4) = 2^(5+4) = 2^9 olur."
+            "cozum": "İşlem önceliğine göre önce çarpma ve bölme yapılır:\n(-8) . (+3) = -24\n(-12) : (-4) = +3\nSonra çıkarma işlemi yapılır: (-24) - (+3) = -24 - 3 = -27."
         },
         {
-            "konu": "Kareköklü İfadeler",
-            "soru": "Alanının değeri 120 cm² olan bir karenin bir kenar uzunluğu hangi iki tam sayı arasındadır?",
-            "A": "9 ile 10",
-            "B": "10 ile 11",
-            "C": "11 ile 12",
-            "D": "12 ile 13",
-            "cevap": "B",
-            "cozum": "Karenin alanı A ise bir kenarı √A olur. Burada kenar √120'dir. √100 < √120 < √121 olduğundan, kenar uzunluğu 10 ile 11 arasındadır."
+            "konu": "Rasyonel Sayılarla İşlemler",
+            "soru": "(1/2 + 1/3) : (1 - 1/6) işleminin sonucu kaçtır?",
+            "A": "1",
+            "B": "5/6",
+            "C": "6/5",
+            "D": "5/12",
+            "cevap": "A",
+            "cozum": "Önce parantez içi işlemler yapılır:\n(1/2 + 1/3) = (3/6 + 2/6) = 5/6\n(1 - 1/6) = 5/6\nSonra bölme işlemi yapılır: (5/6) : (5/6) = 1."
         },
         {
-            "konu": "Basit Olayların Olma Olasılığı",
-            "soru": "Bir torbada aynı büyüklükte 4 kırmızı, 5 mavi ve 3 sarı bilye bulunmaktadır.\n\nTorbaya geri atılmamak şartıyla rastgele çekilen bir bilyenin sarı olmama olasılığı kaçtır?",
-            "A": "1/4",
-            "B": "3/4",
-            "C": "5/12",
-            "D": "1/3",
-            "cevap": "B",
-            "cozum": "Toplam bilye sayısı = 4 + 5 + 3 = 12. Sarı bilye sayısı = 3. Sarı olmama olasılığı (kırmızı veya mavi olması) = (4 + 5) / 12 = 9/12 = 3/4."
+            "konu": "Eşitlik ve Denklem",
+            "soru": "3 . (x - 2) + 4 = 19 denklemini sağlayan x değeri kaçtır?",
+            "A": 5,
+            "B": 6,
+            "C": 7,
+            "D": 8,
+            "cevap": "C",
+            "cozum": "Denklemi çözelim:\n3(x - 2) + 4 = 19\n3x - 6 + 4 = 19\n3x - 2 = 19\n3x = 19 + 2\n3x = 21\nx = 7."
         },
         {
-            "konu": "Doğrusal Denklemler",
-            "soru": "Bir taksinin açılış ücreti 20 TL olup gidilen her kilometre için 10 TL alınmaktadır.\n\nGidilen yol x (km) ve ödenecek ücret y (TL) ise, bu durumu gösteren doğrusal denklem aşağıdakilerden hangisidir?",
-            "A": "y = 20x + 10",
-            "B": "y = 10x + 20",
-            "C": "y = 30x",
-            "D": "x = 10y + 20",
+            "konu": "Oran ve Orantı",
+            "soru": "Bir duvarı aynı hızda çalışan 4 işçi 12 günde boyayabilmektedir.\n\nBuna göre aynı duvarı bu işçilerle aynı hızda çalışan 6 işçi kaç günde boyayabilir?",
+            "A": 6,
+            "B": 8,
+            "C": 18,
+            "D": 24,
             "cevap": "B",
-            "cozum": "Sabit açılış ücreti 20 TL olup gidilen her km için (x) 10 TL eklenecektir. Toplam ücret y = 10*x + 20 olur."
+            "cozum": "İşçi sayısı arttıkça işin bitme süresi azalacağı için burada ters orantı vardır.\n4 işçi -> 12 gün\n6 işçi -> x gün\nTers orantıda karşılıklı çarpımlar eşittir: 4 . 12 = 6 . x => 48 = 6x => x = 8 gün."
+        },
+        {
+            "konu": "Yüzdeler",
+            "soru": "Maliyet fiyatı 120 TL olan bir mont %25 kâr marjıyla satışa sunulmuştur.\n\nBu montun satış fiyatı kaç TL'dir?",
+            "A": 130,
+            "B": 140,
+            "C": 150,
+            "D": 160,
+            "cevap": "C",
+            "cozum": "Kâr miktarı = 120 . (25/100) = 120 . (1/4) = 30 TL.\nSatış fiyatı = Maliyet + Kâr = 120 + 30 = 150 TL."
         }
     ],
     "Fen Bilimleri": [
         {
-            "konu": "Mevsimler ve İklim",
-            "soru": "Dünya'nın Güneş etrafındaki dolanımı sırasında 21 Haziran tarihinde Kuzey Yarım Küre'de en uzun gündüz yaşanır.\n\nBuna göre 21 Haziran tarihinde Güney Yarım Küre'de hangi mevsimin başlangıcı kabul edilir?",
-            "A": "Yaz",
-            "B": "Kış",
-            "C": "İlkbahar",
-            "D": "Sonbahar",
-            "cevap": "B",
-            "cozum": "Kuzey ve Güney Yarım Kürelerde aynı tarihlerde birbirinin zıttı mevsimler yaşanır. Kuzey Yarım Küre'de 21 Haziran yaz başlangıcıyken, Güney Yarım Küre'de kış başlangıcıdır."
-        },
-        {
-            "konu": "DNA ve Genetik Kod",
-            "soru": "DNA molekülünün yapısıyla ilgili verilen bilgilerden hangisi yanlıştır?",
-            "A": "Çift zincirli ve sarmal bir yapıdadır.",
-            "B": "Yapı birimleri nükleotidlerdir.",
-            "C": "Adenin nükleotidinin karşısına her zaman Guanin gelir.",
-            "D": "Nükleotidler şeker, fosfat ve organik bazdan oluşur.",
+            "konu": "Güneş Sistemi ve Ötesi",
+            "soru": "Yıldızların ömrü bittiğinde kütlelerinin büyüklüğüne göre farklı gök cisimlerine dönüşürler.\n\nBüyük kütleli bir yıldızın ömrü tükendiğinde süpernova patlaması geçirerek aşağıdakilerden hangisine dönüşmesi beklenir?",
+            "A": "Beyaz Cüce",
+            "B": "Bulutsu (Nebula)",
+            "C": "Kara Delik veya Nötron Yıldızı",
+            "D": "Kırmızı Dev",
             "cevap": "C",
-            "cozum": "DNA'da Adenin nükleotidinin karşısına her zaman Timin (A-T), Guanin nükleotidinin karşısına ise her zaman Sitozin (G-C) gelir."
+            "cozum": "Büyük kütleli yıldızlar ömürlerinin sonunda süpernova patlamasıyla kara delik ya da nötron yıldızına dönüşürler. Küçük kütleli yıldızlar ise beyaz cüce olarak ömürlerini tamamlar."
         },
         {
-            "konu": "Katı Basıncı",
-            "soru": "Özdeş tuğlalar kullanılarak yapılan deneylerde tuğlaların yere temas eden yüzey alanları küçüldükçe yere uyguladıkları basıncın arttığı gözlemlenmiştir.\n\nBu durum, katı basıncının hangi faktöre bağlı olduğunu gösterir?",
-            "A": "Katının ağırlığına",
-            "B": "Temas yüzey alanına",
-            "C": "Havanın yoğunluğuna",
-            "D": "Yer çekimi ivmesine",
+            "konu": "Hücre ve Bölünmeler (Mitoz)",
+            "soru": "Mitoz bölünme ile ilgili aşağıdaki ifadelerden hangisi yanlıştır?",
+            "A": "Bölünme sonucunda kalıtsal olarak ana hücrenin tıpatıp aynısı 2 yeni hücre oluşur.",
+            "B": "Bölünme sırasında parça değişimi (krossing-over) gerçekleşir.",
+            "C": "Çok hücreli canlılarda büyüme, gelişme ve yaraların onarılmasını sağlar.",
+            "D": "Vücut hücrelerinde (2n) görülür ve kromozom sayısı sabit kalır.",
             "cevap": "B",
-            "cozum": "Tuğlalar özdeş olduğundan ağırlık sabittir. Temas yüzey alanı değiştikçe basınç değiştiği için bu deney katı basıncının yüzey alanıyla ilişkisini gösterir."
+            "cozum": "Parça değişimi (krossing-over) mitoz bölünmede değil, mayoz bölünmede gerçekleşir ve kalıtsal çeşitliliği sağlar. Diğer şıklar mitozun özellikleridir."
         },
         {
-            "konu": "Asitler ve Bazlar",
-            "soru": "Bir sıvının pH değerinin 2 olduğu ölçülmüştür. Bu sıvı hakkında aşağıdakilerden hangisi söylenebilir?",
-            "A": "Güçlü bir bazdır.",
-            "B": "Tadı acıdır ve ele kayganlık hissi verir.",
-            "C": "Mavi turnusol kağıdını kırmızıya çevirir.",
-            "D": "Nötr bir sıvıdır.",
+            "konu": "Kuvvet ve Enerji (Enerji Dönüşümü)",
+            "soru": "Yerden yukarı doğru fırlatılan bir taş yükselirken kinetik ve çekim potansiyel enerjisi nasıl değişir?",
+            "A": "Kinetik enerji artar, potansiyel enerji azalır.",
+            "B": "Her iki enerji türü de artar.",
+            "C": "Kinetik enerji azalır, potansiyel enerji artar.",
+            "D": "Her iki enerji türü de azalır.",
             "cevap": "C",
-            "cozum": "pH cetvelinde 0-7 arası asit, 7 nötr, 7-14 arası bazdır. pH = 2 olan madde kuvvetli bir asittir. Asitler mavi turnusolu kırmızıya çevirir, ekşidir."
+            "cozum": "Taş yukarı doğru çıkarken yüksekliği arttığı için çekim potansiyel enerjisi artar. Hızı yavaşlayacağı için de kinetik enerjisi azalır. Kinetik enerji potansiyel enerjiye dönüşür."
         },
         {
-            "konu": "Fiziksel ve Kimyasal Değişimler",
-            "soru": "Aşağıdaki olaylardan hangisi kimyasal bir değişime örnek gösterilebilir?",
-            "A": "Demirin paslanması",
-            "B": "Buzun erimesi",
-            "C": "Kağıdın yırtılması",
-            "D": "Camın kırılması",
-            "cevap": "A",
-            "cozum": "Buzun erimesi, kağıdın yırtılması ve camın kırılması fiziksel değişimdir (maddenin dış yapısı değişir). Demirin paslanması ise oksijenle tepkimeye girmesi sonucu oluşan kimyasal değişimdir."
+            "konu": "Saf Maddeler ve Karışımlar",
+            "soru": "Aşağıdaki karışımlardan hangisi homojen karışımlara (çözeltilere) örnek olarak verilebilir?",
+            "A": "Zeytinyağlı su",
+            "B": "Tuzlu su",
+            "C": "Çamurlu su",
+            "D": "Kum ve su karışımı",
+            "cevap": "B",
+            "cozum": "Homojen karışımlarda maddeler birbirinin içinde tamamen çözünür ve dışarıdan tek bir madde gibi görünür. Tuzlu su bir çözeltidir (homojendir). Zeytinyağlı su, çamurlu su ve kum-su heterojen karışımlardır."
+        },
+        {
+            "konu": "Işığın Madde ile Etkileşimi (Aynalar)",
+            "soru": "Görüntüyü düz ve kendisinden büyük gösterebilen, genellikle makyaj aynalarında ve diş hekimlerinin muayenelerinde kullanılan ayna türü aşağıdakilerden hangisidir?",
+            "A": "Düz ayna",
+            "B": "Çukur ayna",
+            "C": "Tümsek ayna",
+            "D": "Merceksi ayna",
+            "cevap": "B",
+            "cozum": "Çukur aynalar, cisim aynaya yakınken düz ve devasa (büyük) görüntü oluştururlar. Bu nedenle detaylı inceleme gerektiren diş hekimliği ve makyaj aynalarında çukur ayna tercih edilir."
         }
     ],
     "İnkılap Tarihi": [
         {
-            "konu": "Bir Kahraman Doğuyor",
-            "soru": "Mustafa Kemal'in doğduğu Selanik şehrinin sosyal, kültürel ve ekonomik canlılığa sahip olması, onun fikir hayatının zenginleşmesinde etkili olmuştur.\n\nSelanik'in çok uluslu yapısı öncelikle Mustafa Kemal'de hangi özelliğin gelişmesini kolaylaştırmıştır?",
-            "A": "Farklı kültürleri ve yaşam tarzlarını tanıma ve hoşgörülü olma",
-            "B": "Yalnızca askeri yeteneklerini geliştirme",
-            "C": "Ekonomik yatırımlara öncelik verme",
-            "D": "Yabancı dillere karşı tamamen ilgisiz kalma",
-            "cevap": "A",
-            "cozum": "Çok uluslu ve kozmopolit bir şehir olan Selanik, Mustafa Kemal'in farklı milletleri, kültürleri yakından tanımasını ve hoşgörülü, geniş ufuklu bir lider olmasını sağlamıştır."
-        },
-        {
-            "konu": "Milli Uyanış",
-            "soru": "Sivas Kongresi'nde alınan kararla ülkede faaliyet gösteren tüm yararlı cemiyetler tek çatı altında birleştirilmiştir.\n\nBu birleştirmenin temel amacı aşağıdakilerden hangisidir?",
-            "A": "Bölgesel kurtuluş yolları aramak",
-            "B": "Milli mücadeleyi tek merkezden yönetip gücü birleştirmek",
-            "C": "Saltanat makamını korumak",
-            "D": "Düzenli ordu kurmaktan vazgeçmek",
-            "cevap": "B",
-            "cozum": "Yararlı cemiyetlerin 'Anadolu ve Rumeli Müdafaa-i Hukuk Cemiyeti' adı altında birleştirilmesi, dağınık haldeki milli direniş güçlerini tek merkezden yönetmek ve topyekün mücadele etmek içindir."
-        },
-        {
-            "konu": "Kurtuluş Savaşı",
-            "soru": "Batı Cephesi'nde kazanılan I. İnönü Zaferi'nin ardından İtilaf Devletleri TBMM'yi Londra Konferansı'na davet etmişlerdir.\n\nBu durum aşağıdakilerden hangisinin doğrudan bir göstergesidir?",
-            "A": "TBMM'nin askeri başarısının diplomatik başarıyı beraberinde getirdiğinin",
-            "B": "Kurtuluş Savaşı'nın tamamen sona erdiğinin",
-            "C": "İtilaf Devletleri'nin Sevr Antlaşması'nı kabul ettiğinin",
-            "D": "TBMM'nin dış politikada başarısız olduğunun",
-            "cevap": "A",
-            "cozum": "Askeri zaferler (I. İnönü Savaşı) sonrasında uluslararası alanda masaya davet edilme (Londra Konferansı) diplomatik zaferlerin askeri güç ile desteklendiğini gösterir."
-        },
-        {
-            "konu": "Atatürkçülük ve İnkılaplar",
-            "soru": "Yeni Türk Devleti'nde halifeliğin kaldırılması, şeriye evkaf vekaletinin sonlandırılması ve Tevhid-i Tedrisat Kanunu'nun kabul edilmesi laikleşme yolundaki adımlardandır.\n\nBu inkılaplar doğrudan hangi Atatürk ilkesiyle ilgilidir?",
-            "A": "Milliyetçilik",
-            "B": "Devletçilik",
-            "C": "Laiklik",
-            "D": "Halkçılık",
+            "konu": "İletişim ve İnsan İlişkileri",
+            "soru": "İletişimde karşımızdaki kişiyi yargılamadan, onun yerine kendimizi koyarak duygu ve düşüncelerini anlamaya çalışmaya 'empati' denir.\n\nBuna göre aşağıdakilerden hangisi empatik bir yaklaşım içeren cümledir?",
+            "A": "Sen zaten her zaman geç kalırsın!",
+            "B": "Bu ödevi zamanında bitirmemen senin tembelliğini gösterir.",
+            "C": "Sınavın kötü geçtiği için üzgün olduğunu tahmin edebiliyorum.",
+            "D": "Beni hiç dinlemiyor, kendi kafana göre davranıyorsun.",
             "cevap": "C",
-            "cozum": "Din ve devlet işlerinin ayrılması, din kurallarına dayalı kurumların modernize edilmesi laiklik ilkesinin en temel gereğidir."
+            "cozum": "C şıkkında konuşmacı kendini karşısındaki kişinin yerine koyarak onun duygusunu anladığını ifade etmektedir ('üzgün olduğunu tahmin edebiliyorum'). Diğer şıklar sen dili ve yargılayıcı ifadeler içerir."
         },
         {
-            "konu": "Dış Politika",
-            "soru": "Atatürk Dönemi Türk dış politikasında komşu devletlerle dostane ilişkiler kurmaya önem verilmiş, Sadabat Paktı ve Balkan Antantı imzalanmıştır.\n\nBu paktların imzalanmasının en temel ortak amacı aşağıdakilerden hangisidir?",
-            "A": "Sınır güvenliklerini karşılıklı garanti altına almak ve barışı korumak",
-            "B": "Yeni sömürgeler elde etmek",
-            "C": "İç işlerine müdahaleyi kolaylaştırmak",
-            "D": "Ekonomiyi tamamen dışa bağımlı hale getirmek",
+            "konu": "Osmanlı Devleti'nin Kuruluşu",
+            "soru": "Osmanlı Beyliği'nin kısa sürede büyüyüp bir imparatorluğa dönüşmesinde coğrafi konumunun büyük etkisi olmuştur.\n\nOsmanlı'nın kurulduğu dönemde Bizans sınırında yer alması ve batı yönünde ilerlemesi, ona ne tür bir coğrafi avantaj sağlamıştır?",
+            "A": "Jeopolitik konum avantajı ve gaza/cihad anlayışıyla diğer beyliklerin desteğini alma",
+            "B": "Diğer Türk beylikleriyle sürekli iç savaş yaşama",
+            "C": "Deniz ticaretini tamamen tekeline alma",
+            "D": "Tarım faaliyetlerini tamamen sonlandırma",
             "cevap": "A",
-            "cozum": "Türkiye, doğu sınırının güvenliği için Sadabat Paktı'nı, batı sınırının güvenliği için ise Balkan Antantı'nı imzalayarak bölgesel güvenlik ve barışı korumayı hedeflemiştir."
+            "cozum": "Bizans sınırında (uç beyi olarak) yer alması Bizans'ın zayıflığından faydalanmasını sağlamış ve Hristiyan topraklarına gaza/cihad yapması sebebiyle diğer Türk beyliklerinin tepkisini çekmek yerine onların sempatisini ve desteğini kazanmasını kolaylaştırmıştır."
+        },
+        {
+            "konu": "Osmanlı Devleti'nin Kültür ve Teşkilat Yapısı",
+            "soru": "Osmanlı Devleti'nde Hristiyan ailelerden devşirilen çocukların devlet adamı ve asker (Yeniçeri) olarak yetiştirildiği sistem aşağıdakilerden hangisidir?",
+            "A": "Tımar Sistemi",
+            "B": "Devşirme Sistemi",
+            "C": "İskan Politikası",
+            "D": "Millet Sistemi",
+            "cevap": "B",
+            "cozum": "Hristiyan ailelerden seçilen çocukların saray okulu olan Enderun'da veya Yeniçeri Ocağı'nda devlet hizmetine yetiştirilmesi 'Devşirme Sistemi' olarak adlandırılır."
+        },
+        {
+            "konu": "Zaman İçinde Bilim",
+            "soru": "Matbaanın icadı ve yaygınlaşmasıyla birlikte kitap fiyatları ucuzlamış, bilgiye erişim kolaylaşmış ve okuryazarlık oranı hızla artmıştır.\n\nBu durum Avrupa'da öncelikle aşağıdaki gelişmelerden hangisinin başlamasına zemin hazırlamıştır?",
+            "A": "Sanayi İnkılabı",
+            "B": "Rönesans ve Reform",
+            "C": "Coğrafi Keşifler",
+            "D": "Fransız İhtilali",
+            "cevap": "B",
+            "cozum": "Matbaa sayesinde bilimsel ve dini eserlerin halk tarafından okunup sorgulanması, Avrupa'da bilim-sanatta uyanışa (Rönesans) ve dini reform hareketlerine (Reform) doğrudan zemin hazırlamıştır."
+        },
+        {
+            "konu": "Nüfus ve Yerleşme",
+            "soru": "İnsanların iş bulmak, eğitim almak veya daha iyi yaşam koşullarına sahip olmak amacıyla bir yerden başka bir yere göç etmesine ne ad verilir?",
+            "A": "Doğal Nüfus Artışı",
+            "B": "Yerleşme",
+            "C": "İsteğe Bağlı (Gönüllü) Göç",
+            "D": "Zorunlu Göç",
+            "cevap": "C",
+            "cozum": "İş, eğitim veya yaşam standartlarını yükseltmek gibi kişisel kararlarla yapılan göçler 'İsteğe Bağlı (Gönüllü) Göç' kapsamındadır. Savaş veya doğal afet gibi durumlarda yapılanlar ise zorunlu göçtür."
         }
     ],
     "İngilizce": [
         {
-            "konu": "Friendship",
-            "soru": "Sally: Hey Sue! Are you doing anything on Sunday? We are organizing a picnic.\nSue: Cool! I'd love to join, but I have to study for my science exam.\n\nAccording to the conversation, Sue __________.",
-            "A": "accepts the invitation",
-            "B": "refuses the invitation with an excuse",
-            "C": "invites Sally to a science class",
-            "D": "goes to the picnic with Sally",
-            "cevap": "B",
-            "cozum": "Sue daveti kabul etmek istediğini belirtiyor ('I'd love to join') ancak fen sınavına çalışması gerektiğini söyleyerek gerekçe sunup reddediyor ('but I have to study...')."
-        },
-        {
-            "konu": "Teen Life",
-            "soru": "Tom: How often do you play computer games?\nSam: __________ because I think they are boring and a waste of time.\n\nChoose the best option to complete the dialogue.",
-            "A": "I play them every day",
-            "B": "Twice a week",
-            "C": "Almost never",
-            "D": "Always in my free time",
+            "konu": "Appearance and Personality",
+            "soru": "Mark: What is your new English teacher like?\nLeo: Well, she is very helpful and patient. She always explains things carefully.\n\nAccording to the conversation, Leo's English teacher is __________.",
+            "A": "describing her physical appearance",
+            "B": "very talkative and rude",
+            "C": "friendly and has a good personality",
+            "D": "young with short blond hair",
             "cevap": "C",
-            "cozum": "Sam oyunların sıkıcı ve zaman kaybı olduğunu düşünüyor. Bu yüzden çok seyrek veya hiç oynamaması gerekir. 'Almost never' (neredeyse hiç) uygun cevaptır."
+            "cozum": "Mark 'What is she like?' diye sorarak öğretmenin kişilik özelliklerini öğrenmek istiyor. Leo ise onun yardımsever (helpful) ve sabırlı (patient) olduğunu belirterek kişiliğini övüyor (C)."
         },
         {
-            "konu": "In The Kitchen",
-            "soru": "To make a delicious omelette, first melt some butter in a pan. Next, whisk two eggs in a bowl. Then, pour the eggs into the hot pan. Finally, cook it for three minutes.\n\nWhich cooking step comes immediately after whisking the eggs?",
-            "A": "Melting the butter",
-            "B": "Pouring the eggs into the pan",
-            "C": "Cooking it for three minutes",
-            "D": "Whisking them in a bowl",
+            "konu": "Sports",
+            "soru": "Ashley: How often do you go jogging?\nClara: __________ because I love outdoor activities and staying fit.\n\nChoose the best option to complete the dialogue.",
+            "A": "Never",
+            "B": "Three times a week",
+            "C": "At home",
+            "D": "With my sister",
             "cevap": "B",
-            "cozum": "Metinde 'Next, whisk two eggs in a bowl. Then, pour the eggs into the hot pan.' ifadesi yer alır. Yumurtaları çırptıktan (whisk) hemen sonraki adım tavaya dökmektir (pouring)."
+            "cozum": "Ashley ne sıklıkla (How often) koşu yaptığını soruyor. Koşuyu ve fit kalmayı sevdiğini söyleyen Clara sıklık zarfı içeren bir cevap vermelidir. 'Three times a week' sıklık belirtir."
         },
         {
-            "konu": "On The Phone",
-            "soru": "Secretary: Good morning, Star Company. How can I help you?\nMr. Black: Hello. May I speak to the manager, please?\nSecretary: Hold on a second, please. I will __________.",
-            "A": "hang up the phone",
-            "B": "put you through to him",
-            "C": "write down your message",
-            "D": "tell him you are busy",
-            "cevap": "B",
-            "cozum": "Sekreter 'Bir saniye bekleyin lütfen' diyor. Ardından müdüre bağlayacağını belirtmek için 'put you through' (telefonu bağlamak) kalıbını kullanmalıdır."
-        },
-        {
-            "konu": "The Internet",
-            "soru": "I use the Internet to upload my videos, chat with my friends and follow online courses. However, my brother uses it only to download music.\n\nWhich of the following is NOT mentioned in the text as an internet activity?",
-            "A": "Buying flight tickets online",
-            "B": "Socializing with friends",
-            "C": "Downloading music files",
-            "D": "Educational purposes",
+            "konu": "Biographies",
+            "soru": "Albert Einstein __________ born in Germany in 1879. He __________ the Nobel Prize in Physics in 1921.\n\nChoose the best option to fill in the blanks.",
+            "A": "was / won",
+            "B": "is / wins",
+            "C": "were / won",
+            "D": "was / win",
             "cevap": "A",
-            "cozum": "Metinde chat yapmak (B), müzik indirmek (C) ve dersleri takip etmek (D) geçiyor. Ancak uçak bileti almak (A) hakkında bir bilgi yoktur."
+            "cozum": "Geçmişte yaşanmış biyografik olaylar Simple Past Tense (Geçmiş Zaman) ile anlatılır. Einstein tekil olduğu için 'was born' ve 'won' (win fiilinin 2. hali) kullanılır."
+        },
+        {
+            "konu": "Wild Animals",
+            "soru": "Cheetahs are big wild cats. They live in grasslands and deserts. They are carnivores, so they eat meat. They are the fastest land animals in the world.\n\nAccording to the text, cheetahs __________.",
+            "A": "are herbivores",
+            "B": "can run faster than any other land animal",
+            "C": "live in oceans and lakes",
+            "D": "eat plants and fruit",
+            "cevap": "B",
+            "cozum": "Metinde cheetahs için 'They are the fastest land animals in the world' (dünyadaki en hızlı kara hayvanlarıdır) denmektedir. Bu da B şıkkıyla birebir eşleşir."
+        },
+        {
+            "konu": "Television",
+            "soru": "Derek: What kind of TV programs do you prefer watching?\nJudy: I prefer documentaries because I like learning new things about nature and history.\n\nJudy prefers documentaries because she finds them __________.",
+            "A": "boring",
+            "B": "educational",
+            "C": "funny",
+            "D": "scary",
+            "cevap": "B",
+            "cozum": "Judy doğa ve tarih hakkında yeni şeyler öğrenmeyi sevdiği için belgesel izlemeyi tercih ettiğini söylüyor. Yani belgeselleri eğitici/bilgilendirici (educational) bulmaktadır."
         }
     ],
     "Din Kültürü": [
         {
-            "konu": "Kader ve Kaza İnancı",
-            "soru": "Yüce Allah'ın evrendeki her şeyi belli bir uyum, ölçü ve düzen içinde planlayıp takdir etmesine 'kader', bu planlanan olayların zamanı gelince gerçekleşmesine ise 'kaza' denir.\n\nBuna göre aşağıdaki olaylardan hangisi doğrudan bir 'kaza' örneğidir?",
-            "A": "Suyun 100 derecede kaynayacağının yasalarla belirlenmesi",
-            "B": "Yer çekimi kanununun evrende var olması",
-            "C": "Dün akşam beklenen yağmurun şehre yağması",
-            "D": "Güneş'in ne zaman doğacağının önceden yazılması",
+            "konu": "Melek ve Ahiret İnancı",
+            "soru": "Yüce Allah tarafından verilen görevleri yerine getiren, gözle görülmeyen nurani varlıklara melek denir.\n\nEvrendeki doğa olaylarını ve rızıkları idare etmekle görevli olan melek aşağıdakilerden hangisidir?",
+            "A": "Cebrail",
+            "B": "Mikail",
+            "C": "İsrafil",
+            "D": "Azrail",
+            "cevap": "B",
+            "cozum": "Dört büyük melekten biri olan Mikail (a.s.), doğa olaylarını (yağmur, rüzgar vb.) ve canlıların rızıklarını idare etmekle görevlidir. Cebrail vahiy getirmekle, İsrafil sura üflemekle, Azrail ise can almakla görevlidir."
+        },
+        {
+            "konu": "Hac ve Kurban İbadeti",
+            "soru": "Hac ibadeti sırasında Kabe'nin etrafında yedi kez dönmeye ne ad verilir?",
+            "A": "Vakfe",
+            "B": "Sa'y",
+            "C": "Tavaf",
+            "D": "İhram",
             "cevap": "C",
-            "cozum": "Kader takdir etmektir (önceden planlanma/yasalar). Kaza ise gerçekleşmedir. Dün akşam yağmurun yağmış olması olayın zamanı gelip gerçekleştiğini (kaza olduğunu) gösterir."
+            "cozum": "Kabe'nin etrafında ibadet amacıyla yedi defa dönmeye 'tavaf' denir. Her bir dönüşe ise 'şavt' adı verilir."
         },
         {
-            "konu": "Zekat ve Sadaka",
-            "soru": "Zekat, dinen zengin sayılan Müslümanların yılda bir kez mallarının belirli bir kısmını ibadet niyetiyle yoksullarla paylaşmasıdır.\n\nAşağıdakilerden hangisi zekat ibadetinin toplumsal faydalarından biri olamaz?",
-            "A": "Zengin ve fakir arasındaki sevgi bağını güçlendirir.",
-            "B": "Toplumda yardımlaşma ve dayanışma bilincini artırır.",
-            "C": "Sadece zekat veren kişinin gururunu ve bencilliğini okşar.",
-            "D": "Sosyal adaletin sağlanmasına katkıda bulunur.",
+            "konu": "Ahlaki Davranışlar",
+            "soru": "İslam dini bireysel ve toplumsal ahlaka büyük önem verir, dürüstlük ve adaleti emreder.\n\nBuna göre aşağıdaki davranışlardan hangisi İslam ahlakıyla bağdaşmayan kötü davranışlardan biridir?",
+            "A": "Gıybet etmek (birinin arkasından gıyabında hoşlanmayacağı şekilde konuşmak)",
+            "B": "Emanete hıyanet etmemek",
+            "C": "Verilen sözü zamanında tutmak",
+            "D": "Adaletli ve dürüst davranmak",
+            "cevap": "A",
+            "cozum": "Gıybet (arkadan konuşma/dedikodu), İslam dininin kesin olarak yasakladığı ve büyük günahlar arasında kabul ettiği ahlak dışı bir davranıştır."
+        },
+        {
+            "konu": "Allah'ın Kulu ve Elçisi: Hz. Muhammed",
+            "soru": "Aşağıdakilerden hangisi Hz. Muhammed'in (s.a.v.) 'insani yönünü' (beşeri özelliğini) gösteren bir durumdur?",
+            "A": "Allah'tan vahiy alarak insanlara tebliğ etmesi",
+            "B": "Geleceğe dair gayb haberlerini sadece Allah'ın bildirmesiyle aktarması",
+            "C": "Hastalanması, yemek yemesi, çarşıda alışveriş yapması ve vefat etmesi",
+            "D": "Kuran-ı Kerim'in hükümlerini insanlara açıklaması",
             "cevap": "C",
-            "cozum": "Zekat ibadeti bencilliği ve gururu okşamaz, aksine kişiyi cimrilikten korur ve mütevazı kılar. C şıkkı yanlıştır."
+            "cozum": "Yemek yemek, uyumak, hastalanmak, çarşı pazarda dolaşmak ve vefat etmek peygamberlerin insani yönüdür. Vahiy almak, tebliğ etmek ise elçilik (peygamberlik) yönüdür."
         },
         {
-            "konu": "Din ve Hayat",
-            "soru": "İslam dini; canın, aklın, neslin, malın ve dinin korunmasını temel haklar kabul etmiş ve güvence altına almıştır.\n\nİş sağlığı ve güvenliği kurallarına uymak, öncelikle hangi temel hakkın korunması kapsamındadır?",
-            "A": "Malın korunması",
-            "B": "Canın korunması",
-            "C": "Neslin korunması",
-            "D": "Aklın korunması",
-            "cevap": "B",
-            "cozum": "İş sağlığı ve güvenliği, insan yaşamını ve beden bütünlüğünü korumayı amaçladığından doğrudan 'Canın Korunması' ilkesiyle ilgilidir."
-        },
-        {
-            "konu": "Hz. Muhammed'in Örnekliği",
-            "soru": "Peygamber Efendimiz, ticaret hayatında dürüst davranmış, emanetleri korumuş ve kimseye yalan söylememiştir. Bu yüzden Mekkeliler ona daha peygamberlik verilmeden önce dahi 'El-Emin' lakabını vermişlerdir.\n\n'El-Emin' lakabı Hz. Muhammed'in hangi yönünü gösterir?",
-            "A": "Çok zengin olduğunu",
-            "B": "Güvenilir ve dürüst bir insan olduğunu",
-            "C": "Cesur ve savaşçı olduğunu",
-            "D": "Güzel şiirler yazdığını",
-            "cevap": "B",
-            "cozum": "'El-Emin' kelimesi 'güvenilir, kendisinden emin olunan' anlamına gelir ve Hz. Muhammed'in dürüstlük ve güvenilirlik özelliğini temsil eder."
-        },
-        {
-            "konu": "Kuran-ı Kerim",
-            "soru": "Kuran-ı Kerim insanları düşünmeye, akıllarını kullanmaya ve evrendeki yaratılış delillerini araştırmaya davet eder.\n\nBuna göre Kuran'ın gönderiliş amaçlarından biri de aşağıdakilerden hangisidir?",
-            "A": "İnsanları körü körüne taklide zorlamak",
-            "B": "Akıl ve irade sahibi insanları doğru düşünmeye yönlendirmek",
-            "C": "Bilimsel çalışmalara tamamen engel olmak",
-            "D": "Sadece geçmiş kavimlerin masallarını anlatıp bırakmak",
-            "cevap": "B",
-            "cozum": "Kuran-ı Kerim, taklitçi bir inanç yerine akıl ve iradeyi kullanarak bilinçli bir iman geliştirmeyi ve doğru düşünmeyi hedefler."
+            "konu": "İslam Düşüncesinde Yorumlar",
+            "soru": "İslam düşüncesinde dinin özü değişmemekle birlikte, kültürel ve coğrafi şartlara bağlı olarak fıkhi (ameli) yorum farklılıkları ortaya çıkmıştır.\n\nAşağıdakilerden hangisi bu fıkhi yorum mezheplerinden biri değildir?",
+            "A": "Hanefi Mezhebi",
+            "B": "Şafi Mezhebi",
+            "C": "Budizm",
+            "D": "Maliki Mezhebi",
+            "cevap": "C",
+            "cozum": "Hanefilik, Şafilik, Malikilik ve Hanbelilik İslam düşüncesindeki dört büyük fıkhi mezheptir. Budizm ise İslam dışı, tamamen farklı bir dindir."
         }
     ]
 }

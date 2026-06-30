@@ -68,8 +68,16 @@ def yerel_havuzdan_soru_sec(ders, adet=5):
     havuz = SORU_HAVUZU.get(ders, [])
     if not havuz:
         return [{"konu": "Genel Tekrar", "soru": f"Yerel havuzda {ders} dersine ait soru bulunamadı.", "A": "-", "B": "-", "C": "-", "D": "-", "cevap": "A", "cozum": "-", "is_local": True}]
-    secilecek_adet = min(len(havuz), adet)
-    secilenler = random.sample(havuz, secilecek_adet)
+    
+    if adet <= len(havuz):
+        secilenler = random.sample(havuz, adet)
+    else:
+        # Eğer istenen soru adeti havuzdakinden fazlaysa, önce elimizdeki tüm benzersiz soruları alıp
+        # kalanını rastgele (tekrarlanarak) tamamlıyoruz ki hedef sayıya tam ulaşılsın.
+        secilenler = list(havuz)
+        kalan_adet = adet - len(havuz)
+        secilenler += random.choices(havuz, k=kalan_adet)
+        
     sonuc = []
     for s in secilenler:
         kopyalanmis = s.copy()
