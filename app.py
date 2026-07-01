@@ -4,11 +4,22 @@ from datetime import datetime, timedelta
 # Yeni nesil kütüphane entegrasyonu
 from google import genai
 from google.genai import types
+from pydantic import BaseModel, Field
 import plotly.graph_objects as go
 import os
 import random
 from streamlit_drawable_canvas import st_canvas
 from soru_havuzu import SORU_HAVUZU
+
+class SoruModel(BaseModel):
+    konu: str = Field(description="Sorunun ait olduğu LGS alt konu adı.")
+    soru: str = Field(description="LGS tarzı yeni nesil, mantık-muhakeme odaklı sorunun metni (veya paragrafı/öncülleri).")
+    A: str = Field(description="A seçeneğinin metni. Sadece seçenek içeriğini yazın. Kesinlikle seçeneğin doğru veya yanlış olduğuna dair açıklama, gerekçe veya 'Doğru', 'Yanlış' gibi ifadeler/ipuçları eklemeyin.")
+    B: str = Field(description="B seçeneğinin metni. Sadece seçenek içeriğini yazın. Kesinlikle seçeneğin doğru veya yanlış olduğuna dair açıklama, gerekçe veya 'Doğru', 'Yanlış' gibi ifadeler/ipuçları eklemeyin.")
+    C: str = Field(description="C seçeneğinin metni. Sadece seçenek içeriğini yazın. Kesinlikle seçeneğin doğru veya yanlış olduğuna dair açıklama, gerekçe veya 'Doğru', 'Yanlış' gibi ifadeler/ipuçları eklemeyin.")
+    D: str = Field(description="D seçeneğinin metni. Sadece seçenek içeriğini yazın. Kesinlikle seçeneğin doğru veya yanlış olduğuna dair açıklama, gerekçe veya 'Doğru', 'Yanlış' gibi ifadeler/ipuçları eklemeyin.")
+    cevap: str = Field(description="Doğru seçeneğin harfi (Sadece A, B, C veya D).")
+    cozum: str = Field(description="Sorunun detaylı ve öğretici çözümü. Seçeneklerin neden doğru veya yanlış olduğunu burada açıklayın.")
 
 # Sayfa Yapılandırması
 st.set_page_config(layout="wide", page_title="Şampiyonun LGS Karargâhı")
@@ -101,42 +112,33 @@ def yedek_havuz_olustur(client, status_container):
                 Sen Türkiye MEB müfredatına tamamen hakim uzman bir LGS öğretmenisin.
                 7. Sınıf {ders} müfredatına uygun, mantık muhakeme odaklı, LGS tarzı yeni nesil tam 10 adet özgün soru hazırla.
                 
-                Her sorunun başlangıcına mutlaka 'SORU_BASLA' ifadesini koy.
-                Format kurallarına kesinlikle uy:
-                
-                SORU_BASLA
-                KONU: [Konu Adı]
-                SORU: [Soru Metni]
-                A: [A Seçeneği]
-                B: [B Seçeneği]
-                C: [C Seçeneği]
-                D: [D Seçeneği]
-                CEVAP: [Sadece A, B, C veya D harfi]
-                COZUM: [Çözüm ve püf noktası açıklaması]
+                ÖNEMLİ KURALLAR:
+                1. Soruların hepsi LGS standartlarında, yeni nesil ve mantık-muhakeme becerilerini ölçen düzeyde olmalıdır.
+                2. A, B, C, D seçeneklerinin metinlerinde kesinlikle seçeneğin doğru ya da yanlış olduğuna dair 'Doğru', 'Yanlış' gibi ipuçları, açıklamalar veya gerekçeler bulunmamalıdır. Seçenekler sadece sorunun normal şık metinlerini içermelidir.
+                3. Şıkların neden doğru veya yanlış olduğunun gerekçesi ve sorunun ayrıntılı çözümü sadece 'cozum' (çözüm) alanında yer almalıdır.
                 """
                 
                 response = client.models.generate_content(
                     model='gemini-2.5-flash',
                     contents=prompt,
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        response_schema=list[SoruModel]
+                    )
                 )
-                metin = response.text
                 
-                bloklar = metin.split("SORU_BASLA")
-                for blok in bloklar:
-                    if "SORU:" in blok and "CEVAP:" in blok:
-                        satirlar = [s.strip() for s in blok.strip().split("\n") if s.strip()]
-                        obj = {"konu": "Genel Tekrar", "soru": "Soru yüklenemedi.", "A": "", "B": "", "C": "", "D": "", "cevap": "A", "cozum": "Açıklama yok."}
-                        for s in satirlar:
-                            if s.upper().startswith("KONU:"): obj["konu"] = s[5:].strip()
-                            elif s.upper().startswith("SORU:"): obj["soru"] = s[5:].strip()
-                            elif s.upper().startswith("A:"): obj["A"] = s[2:].strip()
-                            elif s.upper().startswith("B:"): obj["B"] = s[2:].strip()
-                            elif s.upper().startswith("C:"): obj["C"] = s[2:].strip()
-                            elif s.upper().startswith("D:"): obj["D"] = s[2:].strip()
-                            elif s.upper().startswith("CEVAP:"): obj["cevap"] = s[6:].strip().upper()
-                            elif s.upper().startswith("COZUM:"): obj["cozum"] = s[6:].strip()
-                        if obj["soru"] != "Soru yüklenemedi.":
-                            ders_sorulari.append(obj)
+                if response.parsed:
+                    for s in response.parsed:
+                        ders_sorulari.append({
+                            "konu": s.konu,
+                            "soru": s.soru,
+                            "A": s.A,
+                            "B": s.B,
+                            "C": s.C,
+                            "D": s.D,
+                            "cevap": s.cevap.strip().upper(),
+                            "cozum": s.cozum
+                        })
             except Exception as e:
                 # Hata durumunda devam etsin
                 pass
@@ -181,45 +183,36 @@ def ai_soru_uret_ve_temizle(ders, adet=5):
         Sen Türkiye MEB müfredatına tamamen hakim uzman bir LGS öğretmenisin.
         7. Sınıf {ders} müfredatına uygun, mantık muhakeme odaklı, LGS tarzı yeni nesil tam {adet} adet özgün soru hazırla. {konu_puanlama_ve_stresi}
         
-        Her sorunun başlangıcına mutlaka 'SORU_BASLA' ifadesini koy.
-        Format kurallarına kesinlikle uy:
-        
-        SORU_BASLA
-        KONU: [Konu Adı]
-        SORU: [Soru Metni]
-        A: [A Seçeneği]
-        B: [B Seçeneği]
-        C: [C Seçeneği]
-        D: [D Seçeneği]
-        CEVAP: [Sadece A, B, C veya D harfi]
-        COZUM: [Çözüm ve püf noktası açıklaması]
+        ÖNEMLİ KURALLAR:
+        1. Soruların hepsi LGS standartlarında, yeni nesil ve mantık-muhakeme becerilerini ölçen düzeyde olmalıdır.
+        2. A, B, C, D seçeneklerinin metinlerinde kesinlikle seçeneğin doğru ya da yanlış olduğuna dair 'Doğru', 'Yanlış' gibi ipuçları, açıklamalar veya gerekçeler bulunmamalıdır. Seçenekler sadece sorunun normal şık metinlerini içermelidir.
+        3. Şıkların neden doğru veya yanlış olduğunun gerekçesi ve sorunun ayrıntılı çözümü sadece 'cozum' (çözüm) alanında yer almalıdır.
         """
         
         # Yeni nesil Gemini API çağrısı
         response = client.models.generate_content(
             model='gemini-2.5-flash',
             contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=list[SoruModel]
+            )
         )
-        metin = response.text
         
-        bloklar = metin.split("SORU_BASLA")
         sonuclar = []
-        
-        for blok in bloklar:
-            if "SORU:" in blok and "CEVAP:" in blok:
-                satirlar = [s.strip() for s in blok.strip().split("\n") if s.strip()]
-                obj = {"konu": "Genel Tekrar", "soru": "Soru yüklenemedi.", "A": "", "B": "", "C": "", "D": "", "cevap": "A", "cozum": "Açıklama yok.", "is_local": False}
-                for s in satirlar:
-                    if s.upper().startswith("KONU:"): obj["konu"] = s[5:].strip()
-                    elif s.upper().startswith("SORU:"): obj["soru"] = s[5:].strip()
-                    elif s.upper().startswith("A:"): obj["A"] = s[2:].strip()
-                    elif s.upper().startswith("B:"): obj["B"] = s[2:].strip()
-                    elif s.upper().startswith("C:"): obj["C"] = s[2:].strip()
-                    elif s.upper().startswith("D:"): obj["D"] = s[2:].strip()
-                    elif s.upper().startswith("CEVAP:"): obj["cevap"] = s[6:].strip().upper()
-                    elif s.upper().startswith("COZUM:"): obj["cozum"] = s[6:].strip()
-                if obj["soru"] != "Soru yüklenemedi.":
-                    sonuclar.append(obj)
+        if response.parsed:
+            for s in response.parsed:
+                sonuclar.append({
+                    "konu": s.konu,
+                    "soru": s.soru,
+                    "A": s.A,
+                    "B": s.B,
+                    "C": s.C,
+                    "D": s.D,
+                    "cevap": s.cevap.strip().upper(),
+                    "cozum": s.cozum,
+                    "is_local": False
+                })
                     
         if len(sonuclar) >= adet:
             return sonuclar[:adet]
