@@ -263,13 +263,14 @@ def pop_up_pencere(ders, bugun):
         col_s, col_c = st.columns([1, 1])
         with col_s:
             st.markdown(f"#### {soru.get('soru')}")
+            is_checked = st.session_state.kontrol_edildi[ders][idx]
             secenek = st.radio(
                 "Cevabını Seç:",
                 [f"A) {soru.get('A')}", f"B) {soru.get('B')}", f"C) {soru.get('C')}", f"D) {soru.get('D')}"],
-                index=None, key=f"r_pop_{ders}_{idx}"
+                index=None, key=f"r_pop_{ders}_{idx}",
+                disabled=is_checked
             )
             
-            is_checked = st.session_state.kontrol_edildi[ders][idx]
             if not is_checked:
                 if st.button("Cevabı Kontrol Et 🚀", key=f"chk_pop_{ders}_{idx}", type="primary", use_container_width=True):
                     if secenek is None:
@@ -278,6 +279,8 @@ def pop_up_pencere(ders, bugun):
                         st.session_state.kontrol_edildi[ders][idx] = True
                         s_harf = secenek[0]
                         dogru_harf = soru.get('cevap', 'A').strip().upper()
+                        if len(dogru_harf) > 0:
+                            dogru_harf = dogru_harf[0]
                         
                         if s_harf == dogru_harf:
                             veri_kaydet("INSERT INTO cozumler (tarih, ders, konu_adi, toplam_cozulen, dogru_sayisi, yanlis_sayisi, anlasilmayan_detay) VALUES (?, ?, ?, 1, 1, 0, '')", (bugun, ders, soru.get('konu')))
@@ -288,6 +291,8 @@ def pop_up_pencere(ders, bugun):
                 st.markdown("---")
                 s_harf = secenek[0] if secenek else ""
                 dogru_harf = soru.get('cevap', 'A').strip().upper()
+                if len(dogru_harf) > 0:
+                    dogru_harf = dogru_harf[0]
                 if s_harf == dogru_harf:
                     st.success(f"🎉 Doğru! {soru.get('cozum')}")
                 else:
@@ -348,12 +353,26 @@ if panel == "Veli / Yönetici Paneli":
             st.subheader("📈 Ders Bazlı Kümülatif Başarı Grafiği")
             hedefler_data = veri_getir("SELECT ders, SUM(hedef_soru) FROM hedefler GROUP BY ders")
             cozumler_data = veri_getir("SELECT ders, SUM(dogru_sayisi), SUM(yanlis_sayisi) FROM cozumler GROUP BY ders")
+            
             grafik_haritasi = {h[0]: {"hedef": h[1], "dogru": 0, "yanlis": 0} for h in hedefler_data}
             for c in cozumler_data:
-                if c[0] in grafik_haritasi: 
-                    grafik_haritasi[c[0]]["dogru"] = c[1]
-                    grafik_haritasi[c[0]]["yanlis"] = c[2]
+                ders_adi = c[0]
+                if ders_adi not in grafik_haritasi:
+                    grafik_haritasi[ders_adi] = {"hedef": 0, "dogru": 0, "yanlis": 0}
+                grafik_haritasi[ders_adi]["dogru"] = c[1]
+                grafik_haritasi[ders_adi]["yanlis"] = c[2]
+                
             if grafik_haritasi:
+                toplam_hedef = sum(info["hedef"] for info in grafik_haritasi.values())
+                toplam_dogru = sum(info["dogru"] for info in grafik_haritasi.values())
+                toplam_yanlis = sum(info["yanlis"] for info in grafik_haritasi.values())
+                
+                col_m1, col_m2, col_m3 = st.columns(3)
+                col_m1.metric("🎯 Toplam Hedef Soru", toplam_hedef)
+                col_m2.metric("✅ Toplam Doğru Çözülen", toplam_dogru)
+                col_m3.metric("❌ Toplam Yanlış Çözülen", toplam_yanlis)
+                st.write("")
+                
                 dersler_list = list(grafik_haritasi.keys())
                 fig = go.Figure(data=[
                     go.Bar(name='Toplam Verilen Hedef', x=dersler_list, y=[grafik_haritasi[d]["hedef"] for d in dersler_list], marker_color='#1f77b4'),
@@ -365,7 +384,7 @@ if panel == "Veli / Yönetici Paneli":
             
         with tab2:
             st.subheader("📆 Gün Bazlı Ödev Tamamlama Analizi")
-            secilen_tarih = st.date_input("Takip Etmek İstediğiniz Günü Seçin:", datetime.now() - timedelta(days=1))
+            secilen_tarih = st.date_input("Takip Etmek İstediğiniz Günü Seçin:", datetime.now())
             tarih_str = secilen_tarih.strftime('%Y-%m-%d')
             
             gunluk_hedefler = veri_getir("SELECT ders, hedef_soru FROM hedefler WHERE tarih = ?", (tarih_str,))
@@ -486,22 +505,41 @@ else:
     bugunun_hedefleri = veri_getir("SELECT ders, hedef_soru FROM hedefler WHERE tarih = ?", (bugun,))
     hedef_adetler = {h[0]: h[1] for h in bugunun_hedefleri}
     
+    bugunun_cozulenleri = veri_getir("SELECT ders, SUM(toplam_cozulen) FROM cozumler WHERE tarih = ? GROUP BY ders", (bugun,))
+    cozulen_adetler = {c[0]: c[1] for c in bugunun_cozulenleri}
+    
     st.markdown("### 📚 Bugünkü Ders Görevlerin")
     cols_ogr = st.columns(3)
     
     for i, d in enumerate(TUM_DERSLER):
-        is_active = d in hedef_adetler
-        button_style = "primary" if is_active else "secondary"
+        hedef_soru = hedef_adetler.get(d, 0)
+        cozulen_soru = cozulen_adetler.get(d, 0)
         
-        if cols_ogr[i % 3].button(d, key=f"ogr_btn_{d}", disabled=not is_active, type=button_style, use_container_width=True):
+        if d in hedef_adetler:
+            if cozulen_soru >= hedef_soru:
+                label = f"✅ {d} (Tamamlandı: {cozulen_soru}/{hedef_soru})"
+                button_style = "secondary"
+                is_active = False
+            else:
+                label = f"📝 {d} ({cozulen_soru}/{hedef_soru})"
+                button_style = "primary"
+                is_active = True
+        else:
+            label = f"⚪ {d} (Hedef Yok)"
+            button_style = "secondary"
+            is_active = False
+        
+        if cols_ogr[i % 3].button(label, key=f"ogr_btn_{d}", disabled=not is_active, type=button_style, use_container_width=True):
             st.session_state.show_popup_ders = d
             if d not in st.session_state.soru_paketi:
                 with st.spinner("Yapay zeka tamamen sıfırdan, özgün sorular üretiyor... 🧠⏳"):
-                    cevap = ai_soru_uret_ve_temizle(d, adet=hedef_adetler[d])
-                    if cevap:
-                        st.session_state.soru_paketi[d] = cevap
-                        st.session_state.aktif_index[d] = 0
-                        st.session_state.kontrol_edildi[d] = [False] * len(cevap)
+                    kalan_adet = hedef_soru - cozulen_soru
+                    if kalan_adet > 0:
+                        cevap = ai_soru_uret_ve_temizle(d, adet=kalan_adet)
+                        if cevap:
+                            st.session_state.soru_paketi[d] = cevap
+                            st.session_state.aktif_index[d] = 0
+                            st.session_state.kontrol_edildi[d] = [False] * len(cevap)
             st.rerun()
 
     # Pop-up Tetikleme Alanı
