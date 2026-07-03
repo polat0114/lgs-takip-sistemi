@@ -60,8 +60,11 @@ except Exception as e:
 TUM_DERSLER = ["Türkçe", "Matematik", "Fen Bilimleri", "İnkılap Tarihi", "İngilizce", "Din Kültürü"]
 
 # Veritabanı Modülleri
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, 'lgs_takip.db')
+
 def veri_getir(query, params=()):
-    conn = sqlite3.connect('lgs_takip.db')
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute(query, params)
     data = cursor.fetchall()
@@ -69,7 +72,7 @@ def veri_getir(query, params=()):
     return data
 
 def veri_kaydet(query, params=()):
-    conn = sqlite3.connect('lgs_takip.db')
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute(query, params)
     conn.commit()
@@ -395,25 +398,36 @@ if panel == "Veli / Yönetici Paneli":
             
             st.write(f"### 🗓️ {secilen_tarih.strftime('%d.%m.%Y')} Tarihli Rapor")
             
-            if list(hedef_dict.keys()):
+            if list(hedef_dict.keys()) or list(cozum_dict.keys()):
                 for d in TUM_DERSLER:
-                    if d in hedef_dict:
-                        v_hedef = hedef_dict[d]
+                    if d in hedef_dict or d in cozum_dict:
+                        v_hedef = hedef_dict.get(d, 0)
                         c_durum = cozum_dict.get(d, {"cozulen": 0, "dogru": 0})
-                        oran = min(int((c_durum["cozulen"] / v_hedef) * 100), 100) if v_hedef > 0 else 0
+                        
+                        if v_hedef > 0:
+                            oran = min(int((c_durum["cozulen"] / v_hedef) * 100), 100)
+                        else:
+                            oran = 100 if c_durum["cozulen"] > 0 else 0
                         
                         col_d1, col_d2, col_d3 = st.columns([2, 5, 2])
                         with col_d1:
                             st.markdown(f"**{d}**")
-                            st.caption(f"Hedef: {v_hedef} | Çözülen: {c_durum['cozulen']}")
+                            hedef_str = f"Hedef: {v_hedef}" if v_hedef > 0 else "Hedef: Belirlenmedi"
+                            st.caption(f"{hedef_str} | Çözülen: {c_durum['cozulen']}")
                         with col_d2:
                             st.progress(oran / 100)
                         with col_d3:
-                            if oran >= 100: st.success(f"🎯 %{oran} ({c_durum['dogru']} D)")
-                            elif oran > 0: st.warning(f"⏳ %{oran} ({c_durum['dogru']} D)")
-                            else: st.error("❌ Dokunulmadı")
+                            if v_hedef > 0:
+                                if oran >= 100: st.success(f"🎯 %{oran} ({c_durum['dogru']} D)")
+                                elif oran > 0: st.warning(f"⏳ %{oran} ({c_durum['dogru']} D)")
+                                else: st.error("❌ Dokunulmadı")
+                            else:
+                                if c_durum["cozulen"] > 0:
+                                    st.success(f"✅ Çözüldü ({c_durum['dogru']} D)")
+                                else:
+                                    st.error("❌ Dokunulmadı")
             else:
-                st.info("Seçilen tarihte atanmış bir hedef bulunamadı.")
+                st.info("Seçilen tarihte atanmış bir hedef veya çözülmüş soru bulunamadı.")
                 
         with tab3:
             st.subheader("🎯 Yeni Günlük Soru Hedefi Belirle")
