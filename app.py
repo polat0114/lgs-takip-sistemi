@@ -63,6 +63,31 @@ TUM_DERSLER = ["Türkçe", "Matematik", "Fen Bilimleri", "İnkılap Tarihi", "İ
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, 'lgs_takip.db')
 
+def veritabani_tablo_olustur():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS ogrenci_cevaplari (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tarih TEXT,
+        ders TEXT,
+        konu_adi TEXT,
+        soru_metni TEXT,
+        secenek_a TEXT,
+        secenek_b TEXT,
+        secenek_c TEXT,
+        secenek_d TEXT,
+        ogrenci_cevabi TEXT,
+        dogru_cevap TEXT,
+        cozum_metni TEXT,
+        durum TEXT
+    )
+    ''')
+    conn.commit()
+    conn.close()
+
+veritabani_tablo_olustur()
+
 def veri_getir(query, params=()):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -83,14 +108,27 @@ def yerel_havuzdan_soru_sec(ders, adet=5):
     if not havuz:
         return [{"konu": "Genel Tekrar", "soru": f"Yerel havuzda {ders} dersine ait soru bulunamadı.", "A": "-", "B": "-", "C": "-", "D": "-", "cevap": "A", "cozum": "-", "is_local": True}]
     
-    if adet <= len(havuz):
-        secilenler = random.sample(havuz, adet)
+    # Veritabanında öğrencinin bu ders için daha önce çözdüğü soruların metinlerini alalım
+    try:
+        cozulmus_sorular = veri_getir("SELECT soru_metni FROM ogrenci_cevaplari WHERE ders = ?", (ders,))
+        cozulmus_set = {row[0].strip() for row in cozulmus_sorular if row[0]}
+    except Exception:
+        cozulmus_set = set()
+        
+    # Havuzdaki sorulardan daha önce çözülmemiş olanları filtreleyelim
+    havuz_filtre = [s for s in havuz if s.get('soru', '').strip() not in cozulmus_set]
+    
+    # Eğer filtre edilmiş havuzda yeterli soru yoksa, çözülmüş soruları tekrar havuzumuza ekleyelim (recycle)
+    if len(havuz_filtre) < adet:
+        secilenler = list(havuz_filtre)
+        kalan_adet = adet - len(secilenler)
+        kalan_havuz = [s for s in havuz if s.get('soru', '').strip() in cozulmus_set]
+        if kalan_havuz:
+            secilenler += random.sample(kalan_havuz, min(kalan_adet, len(kalan_havuz)))
+        if len(secilenler) < adet:
+            secilenler += random.choices(havuz, k=adet - len(secilenler))
     else:
-        # Eğer istenen soru adeti havuzdakinden fazlaysa, önce elimizdeki tüm benzersiz soruları alıp
-        # kalanını rastgele (tekrarlanarak) tamamlıyoruz ki hedef sayıya tam ulaşılsın.
-        secilenler = list(havuz)
-        kalan_adet = adet - len(havuz)
-        secilenler += random.choices(havuz, k=kalan_adet)
+        secilenler = random.sample(havuz_filtre, adet)
         
     sonuc = []
     for s in secilenler:
@@ -178,13 +216,24 @@ def ai_soru_uret_ve_temizle(ders, adet=5):
     if yanlis_konular:
         konu_puanlama_ve_stresi = f"\nÖNEMLİ: Öğrenci daha önce şu konularda yanlış yapmıştır: {', '.join(yanlis_konular)}. Bu konuları pekiştirecek benzer tarzda sorulara ağırlık ver."
 
+    # Gemini'nin mükerrer (kopya) soru üretmesini engellemek için son çözülen 10 sorunun özetini prompt'a ekliyoruz
+    try:
+        son_cozulenler = veri_getir("SELECT soru_metni FROM ogrenci_cevaplari WHERE ders = ? ORDER BY id DESC LIMIT 10", (ders,))
+        cozulmus_ornekler = [row[0][:100] + "..." for row in son_cozulenler if row[0]]
+    except Exception:
+        cozulmus_ornekler = []
+
+    kopya_onleme_talimati = ""
+    if cozulmus_ornekler:
+        kopya_onleme_talimati = f"\nÖNEMLİ: Öğrencinin yakın zamanda çözdüğü şu soru metinlerine çok benzer veya birebir aynı soruları kesinlikle üretme:\n- " + "\n- ".join(cozulmus_ornekler)
+
     if client is None:
         return yerel_havuzdan_soru_sec(ders, adet)
 
     try:
         prompt = f"""
         Sen Türkiye MEB müfredatına tamamen hakim uzman bir LGS öğretmenisin.
-        7. Sınıf {ders} müfredatına uygun, mantık muhakeme odaklı, LGS tarzı yeni nesil tam {adet} adet özgün soru hazırla. {konu_puanlama_ve_stresi}
+        7. Sınıf {ders} müfredatına uygun, mantık muhakeme odaklı, LGS tarzı yeni nesil tam {adet} adet özgün soru hazırla. {konu_puanlama_ve_stresi} {kopya_onleme_talimati}
         
         ÖNEMLİ KURALLAR:
         1. Soruların hepsi LGS standartlarında, yeni nesil ve mantık-muhakeme becerilerini ölçen düzeyde olmalıdır.
@@ -233,6 +282,7 @@ if "aktif_index" not in st.session_state: st.session_state.aktif_index = {}
 if "kontrol_edildi" not in st.session_state: st.session_state.kontrol_edildi = {}
 if "veli_secilen_ders" not in st.session_state: st.session_state.veli_secilen_ders = TUM_DERSLER[0]
 if "show_popup_ders" not in st.session_state: st.session_state.show_popup_ders = None
+if "secilen_cevaplar" not in st.session_state: st.session_state.secilen_cevaplar = {}
 
 # ==========================================
 # 🎯 ÖZEL POP-UP DIALOG MODÜLÜ
@@ -242,6 +292,9 @@ def pop_up_pencere(ders, bugun):
     havuz = st.session_state.soru_paketi.get(ders, [])
     idx = st.session_state.aktif_index.get(ders, 0)
     
+    if ders not in st.session_state.secilen_cevaplar:
+        st.session_state.secilen_cevaplar[ders] = {}
+        
     if idx < len(havuz):
         soru = havuz[idx]
         
@@ -267,10 +320,22 @@ def pop_up_pencere(ders, bugun):
         with col_s:
             st.markdown(f"#### {soru.get('soru')}")
             is_checked = st.session_state.kontrol_edildi[ders][idx]
+            
+            # Seçilen şıkkın index'ini belirleme
+            saved_ans = st.session_state.secilen_cevaplar[ders].get(idx)
+            options = [f"A) {soru.get('A')}", f"B) {soru.get('B')}", f"C) {soru.get('C')}", f"D) {soru.get('D')}"]
+            
+            sel_idx = None
+            if saved_ans:
+                for o_idx, opt in enumerate(options):
+                    if opt.startswith(saved_ans):
+                        sel_idx = o_idx
+                        break
+                        
             secenek = st.radio(
                 "Cevabını Seç:",
-                [f"A) {soru.get('A')}", f"B) {soru.get('B')}", f"C) {soru.get('C')}", f"D) {soru.get('D')}"],
-                index=None, key=f"r_pop_{ders}_{idx}",
+                options,
+                index=sel_idx, key=f"r_pop_{ders}_{idx}",
                 disabled=is_checked
             )
             
@@ -281,18 +346,42 @@ def pop_up_pencere(ders, bugun):
                     else:
                         st.session_state.kontrol_edildi[ders][idx] = True
                         s_harf = secenek[0]
+                        st.session_state.secilen_cevaplar[ders][idx] = s_harf
                         dogru_harf = soru.get('cevap', 'A').strip().upper()
                         if len(dogru_harf) > 0:
                             dogru_harf = dogru_harf[0]
                         
+                        durum = "Doğru" if s_harf == dogru_harf else "Yanlış"
+                        
+                        # İstatistiksel tabloya kaydet
                         if s_harf == dogru_harf:
                             veri_kaydet("INSERT INTO cozumler (tarih, ders, konu_adi, toplam_cozulen, dogru_sayisi, yanlis_sayisi, anlasilmayan_detay) VALUES (?, ?, ?, 1, 1, 0, '')", (bugun, ders, soru.get('konu')))
                         else:
                             veri_kaydet("INSERT INTO cozumler (tarih, ders, konu_adi, toplam_cozulen, dogru_sayisi, yanlis_sayisi, anlasilmayan_detay) VALUES (?, ?, ?, 1, 0, 1, ?)", (bugun, ders, soru.get('konu'), f"Hata: {s_harf} seçildi"))
+                        
+                        # Detaylı öğrenci cevap tablosuna kaydet
+                        veri_kaydet('''
+                            INSERT INTO ogrenci_cevaplari 
+                            (tarih, ders, konu_adi, soru_metni, secenek_a, secenek_b, secenek_c, secenek_d, ogrenci_cevabi, dogru_cevap, cozum_metni, durum) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ''', (
+                            bugun, 
+                            ders, 
+                            soru.get('konu'), 
+                            soru.get('soru'), 
+                            soru.get('A'), 
+                            soru.get('B'), 
+                            soru.get('C'), 
+                            soru.get('D'), 
+                            s_harf, 
+                            dogru_harf, 
+                            soru.get('cozum'), 
+                            durum
+                        ))
                         st.rerun()
             else:
                 st.markdown("---")
-                s_harf = secenek[0] if secenek else ""
+                s_harf = saved_ans if saved_ans else (secenek[0] if secenek else "")
                 dogru_harf = soru.get('cevap', 'A').strip().upper()
                 if len(dogru_harf) > 0:
                     dogru_harf = dogru_harf[0]
@@ -312,6 +401,8 @@ def pop_up_pencere(ders, bugun):
                     st.success("🏆 Harika! Bu dersin tüm sorularını başarıyla bitirdin!")
                     if st.button("🏁 Raporla ve Kapat", key=f"close_pop_{ders}", type="primary", use_container_width=True):
                         st.session_state.show_popup_ders = None
+                        st.session_state.soru_paketi.pop(ders, None)
+                        st.session_state.secilen_cevaplar.pop(ders, None)
                         st.rerun()
         with col_c:
             st.caption("✏️ Karalama Tahtası:")
@@ -387,7 +478,7 @@ if panel == "Veli / Yönetici Paneli":
             
         with tab2:
             st.subheader("📆 Gün Bazlı Ödev Tamamlama Analizi")
-            secilen_tarih = st.date_input("Takip Etmek İstediğiniz Günü Seçin:", datetime.now())
+            secilen_tarih = st.date_input("Takip Etmek İstediğiniz Günü Seçin:", datetime.now(), key="veli_tarih_secici")
             tarih_str = secilen_tarih.strftime('%Y-%m-%d')
             
             gunluk_hedefler = veri_getir("SELECT ders, hedef_soru FROM hedefler WHERE tarih = ?", (tarih_str,))
@@ -426,6 +517,37 @@ if panel == "Veli / Yönetici Paneli":
                                     st.success(f"✅ Çözüldü ({c_durum['dogru']} D)")
                                 else:
                                     st.error("❌ Dokunulmadı")
+                                    
+                # Çözülen soruların detaylarını listeleme
+                st.markdown("---")
+                st.subheader("📝 Çözülen Soruların Detaylı Analizi")
+                
+                detaylar = veri_getir('''
+                    SELECT ders, konu_adi, soru_metni, secenek_a, secenek_b, secenek_c, secenek_d, ogrenci_cevabi, dogru_cevap, cozum_metni, durum 
+                    FROM ogrenci_cevaplari 
+                    WHERE tarih = ?
+                ''', (tarih_str,))
+                
+                if detaylar:
+                    for idx, det in enumerate(detaylar):
+                        d_ders, d_konu, d_soru, d_a, d_b, d_c, d_d, d_ogr, d_dogru, d_cozum, d_durum = det
+                        
+                        durum_emoji = "✅" if d_durum == "Doğru" else "❌"
+                        renkli_durum = f"<span style='color:green;font-weight:bold;'>Doğru</span>" if d_durum == "Doğru" else f"<span style='color:red;font-weight:bold;'>Yanlış</span>"
+                        
+                        header_text = f"{durum_emoji} Soru {idx+1} | {d_ders} - {d_konu} | Öğrencinin Cevabı: {d_ogr}"
+                        
+                        with st.expander(header_text):
+                            st.markdown(f"**Soru:** {d_soru}")
+                            st.write(f"**A)** {d_a}")
+                            st.write(f"**B)** {d_b}")
+                            st.write(f"**C)** {d_c}")
+                            st.write(f"**D)** {d_d}")
+                            st.markdown("---")
+                            st.markdown(f"👤 **Öğrencinin Cevabı:** {d_ogr} ({renkli_durum}) | 🎯 **Doğru Cevap:** {d_dogru}", unsafe_allow_html=True)
+                            st.info(f"💡 **Çözüm / Açıklama:**\n{d_cozum}")
+                else:
+                    st.info("Bu tarihte çözülmüş soruların detaylı analizi bulunamadı.")
             else:
                 st.info("Seçilen tarihte atanmış bir hedef veya çözülmüş soru bulunamadı.")
                 
@@ -515,14 +637,41 @@ if panel == "Veli / Yönetici Paneli":
 # 📱 ÖĞRENCİ / TABLET PANELİ
 # ==========================================
 else:
-    bugun = datetime.now().strftime('%Y-%m-%d')
+    bugun_dt = datetime.now()
+    
+    # Son 7 gündeki tamamlanmamış hedefleri tarayalım
+    tamamlanmamis_gunler = []
+    for offset in range(1, 8):
+        t_tarih = (bugun_dt - timedelta(days=offset)).strftime('%Y-%m-%d')
+        # Bu tarihte hedefler var mı?
+        past_goals = veri_getir("SELECT ders, hedef_soru FROM hedefler WHERE tarih = ?", (t_tarih,))
+        if past_goals:
+            past_solutions = veri_getir("SELECT ders, SUM(toplam_cozulen) FROM cozumler WHERE tarih = ? GROUP BY ders", (t_tarih,))
+            sol_dict = {ps[0]: ps[1] for ps in past_solutions}
+            for pg in past_goals:
+                ders_name = pg[0]
+                target_q = pg[1]
+                solved_q = sol_dict.get(ders_name, 0)
+                if solved_q < target_q:
+                    tamamlanmamis_gunler.append(t_tarih)
+                    break
+                    
+    if tamamlanmamis_gunler:
+        # Tarihleri okunabilir formatta (%d.%m.%Y) sıralı gösterelim
+        okunabilir_tarihler = [datetime.strptime(d, '%Y-%m-%d').strftime('%d.%m.%Y') for d in sorted(tamamlanmamis_gunler)]
+        st.warning(f"⚠️ **Poyraz Efe, tamamlanmamış geçmiş ödevlerin var!**\n\nLütfen aşağıdaki tarih seçiciden şu günleri seçerek eksik ödevlerini tamamla: **{', '.join(okunabilir_tarihler)}**")
+
+    # Öğrencinin çalışacağı günü seçmesi için tarih seçici (Veli paneliyle çakışmaması için benzersiz key)
+    secilen_ogr_tarih = st.date_input("Çalışmak İstediğiniz Günü Seçin:", bugun_dt, key="ogr_tarih_secici")
+    bugun = secilen_ogr_tarih.strftime('%Y-%m-%d')
+    
     bugunun_hedefleri = veri_getir("SELECT ders, hedef_soru FROM hedefler WHERE tarih = ?", (bugun,))
     hedef_adetler = {h[0]: h[1] for h in bugunun_hedefleri}
     
     bugunun_cozulenleri = veri_getir("SELECT ders, SUM(toplam_cozulen) FROM cozumler WHERE tarih = ? GROUP BY ders", (bugun,))
     cozulen_adetler = {c[0]: c[1] for c in bugunun_cozulenleri}
     
-    st.markdown("### 📚 Bugünkü Ders Görevlerin")
+    st.markdown(f"### 📚 {secilen_ogr_tarih.strftime('%d.%m.%Y')} Tarihli Ders Görevlerin")
     cols_ogr = st.columns(3)
     
     for i, d in enumerate(TUM_DERSLER):
